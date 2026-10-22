@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>隐私政策 · Privacy Policy — 密码管理器</title>
+<link rel="icon" href="/favicon.png" />
+<link rel="stylesheet" href="/legal.css" />
+</head>
+<body>
+<main>
+<p class="back"><a href="/">← 密码管理器</a></p>
+
+<h1>隐私政策</h1>
+<p class="date">更新于 2026 年 10 月 22 日</p>
+
+<p>密码管理器（pw.si16.app / password.si16.app）是一个在浏览器里运行的密码本。我们的原则很简单：你的密码本内容只属于你，我们看不到，也不收集。</p>
+
+<h2>保存在你设备上的数据</h2>
+<p>密码本保存在你浏览器的本地存储（IndexedDB）里。设了总密码的密码本在你的设备上用 AES-GCM 加密后才保存，密钥由你的总密码推导，从不离开你的设备。未设总密码的"开放"密码本以明文保存在本地，应用里对此有提示。</p>
+
+<h2>使用谷歌账户时</h2>
+<ul>
+<li><strong>权限：</strong>只申请 <code>drive.file</code>（只能访问本应用创建、或你在谷歌文件选择器中亲自选中的文件）以及 <code>openid</code>、<code>email</code>（用来显示你登录的是哪个账户、接收分享提示）。我们无法访问你 Google Drive 中的其他文件。</li>
+<li><strong>同步：</strong>密码本以文件形式保存在<strong>你自己的</strong> Google Drive 的 "Password Manager" 文件夹里。加密密码本上传的是加密后的内容。文件直接在你的浏览器和 Google 之间传输。</li>
+<li><strong>登录凭证：</strong>谷歌的刷新令牌经过加密，只保存在你浏览器的 HttpOnly Cookie 里；我们的服务器不保存它。</li>
+<li><strong>分享提示：</strong>当你把密码本分享给他人时，我们的服务器（Cloudflare Workers KV）会保存一条提示：文件 ID、密码本 ID、密码本名称、你的邮箱、对方邮箱和时间，用于让对方看到"某某和你分享了……"。对方添加或忽略、或你取消分享后，提示即被删除。从不保存密码本内容。</li>
+</ul>
+
+<h2>我们不做的事</h2>
+<ul>
+<li>不收集、不出售、不分享你的个人信息或密码本内容。</li>
+<li>没有广告，没有第三方统计或追踪，不加载外部字体。唯一的外部脚本是添加别人分享的密码本时，从 Google 加载的谷歌文件选择器。</li>
+<li>从谷歌 API 获得的数据只用于在应用里提供同步和分享功能，遵守 <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>（包括 Limited Use 要求）。</li>
+</ul>
+
+<h2>服务器日志</h2>
+<p>应用托管在 Cloudflare 上。Cloudflare 会为运行和安全目的处理常规的请求信息（如 IP 地址、请求时间），我们不用这些信息识别你。</p>
+
+<h2>删除你的数据</h2>
+<p>在应用里删除密码本，或清除浏览器的网站数据，即可删除本地数据。Google Drive 里的文件可以直接在 Drive 中删除。你可以随时在 <a href="https://myaccount.google.com/permissions">Google 账户权限页面</a>撤销本应用的访问权限。</p>
+
+<h2>联系</h2>
+<p>有任何问题，请发邮件至 <a href="mailto:CONTACT_EMAIL">CONTACT_EMAIL</a>。</p>
+
+<hr />
+
+<h1 lang="en">Privacy Policy</h1>
+<div lang="en">
+<p class="date">Updated October 22, 2026</p>
+
+<p>Password Manager (pw.si16.app / password.si16.app) is a password book that runs in your browser. Your books belong to you: we can't read them and we don't collect them.</p>
+
+<h2>Data on your device</h2>
+<p>Books are stored in your browser's local storage (IndexedDB). A book protected by a main password is encrypted on your device with AES-GCM before it is stored; the key is derived from your main password and never leaves your device. An "open" book (no main password) is stored unencrypted on your device, as the app tells you.</p>
+
+<h2>When you use a Google account</h2>
+<ul>
+<li><strong>Permissions:</strong> only <code>drive.file</code> (access to files this app created or that you picked yourself in Google's file picker), plus <code>openid</code> and <code>email</code> (to show which account is signed in and to deliver share notices). We cannot access any other file in your Google Drive.</li>
+<li><strong>Sync:</strong> books are saved as files in a "Password Manager" folder in <strong>your own</strong> Google Drive. Protected books are uploaded encrypted. Files travel directly between your browser and Google.</li>
+<li><strong>Sign-in:</strong> Google's refresh token is encrypted and kept only in an HttpOnly cookie in your browser; our server does not store it.</li>
+<li><strong>Share notices:</strong> when you share a book, our server (Cloudflare Workers KV) keeps a notice — file id, book id, book name, your email, the recipient's email and the time — so the recipient sees "X shared … with you". It is deleted once they add or dismiss it, or when you stop sharing. Book contents are never stored.</li>
+</ul>
+
+<h2>What we don't do</h2>
+<ul>
+<li>We don't collect, sell or share your personal information or book contents.</li>
+<li>No ads, no third-party analytics or tracking, no external fonts. The only outside script is Google's file picker, loaded from Google when you add a book someone shared with you.</li>
+<li>Data from Google APIs is used only to provide sync and sharing in the app, in line with the <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>, including the Limited Use requirements.</li>
+</ul>
+
+<h2>Server logs</h2>
+<p>The app is hosted on Cloudflare, which processes ordinary request information (such as IP address and time) for operation and security. We don't use it to identify you.</p>
+
+<h2>Deleting your data</h2>
+<p>Delete a book in the app, or clear the site's data in your browser, to remove local data. Files in Google Drive can be deleted in Drive. You can revoke the app's access at any time on your <a href="https://myaccount.google.com/permissions">Google Account permissions page</a>.</p>
+
+<h2>Contact</h2>
+<p>Questions: <a href="mailto:CONTACT_EMAIL">CONTACT_EMAIL</a>.</p>
+</div>
+</main>
+</body>
+</html>

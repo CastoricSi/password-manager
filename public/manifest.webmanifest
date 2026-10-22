@@ -1,0 +1,16 @@
+{
+	"name": "密码管理器",
+	"short_name": "密码管理器",
+	"description": "盗贼之神也无可奈何的神器 — 只保存在你自己设备上的加密密码本。",
+	"lang": "zh-CN",
+	"start_url": "/",
+	"scope": "/",
+	"display": "standalone",
+	"background_color": "#f0f1e9",
+	"theme_color": "#f0f1e9",
+	"icons": [
+		{ "src": "/icon-192.png", "type": "image/png", "sizes": "192x192", "purpose": "any" },
+		{ "src": "/icon-512.png", "type": "image/png", "sizes": "512x512", "purpose": "any" },
+		{ "src": "/icon-maskable-512.png", "type": "image/png", "sizes": "512x512", "purpose": "maskable" }
+	]
+}

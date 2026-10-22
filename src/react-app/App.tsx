@@ -1,66 +1,85 @@
-// src/App.tsx
+import { useEffect, useRef, useState } from "react";
 
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
-import cloudflareLogo from "./assets/Cloudflare_Logo.svg";
-import honoLogo from "./assets/hono.svg";
-import "./App.css";
+import { useLibrary, useSync } from "@/app/context";
+import { navigate, useRoute } from "@/app/nav";
+import { usePrefs } from "@/app/prefs";
+import { hasPassword } from "@/lib/bookfile";
+import { MainScreen } from "@/screens/main/MainScreen";
+import { StartFlow } from "@/screens/start/StartFlow";
 
-function App() {
-	const [count, setCount] = useState(0);
-	const [name, setName] = useState("unknown");
+const ACTIVITY = ["pointerdown", "keydown", "wheel", "touchstart"] as const;
 
-	return (
-		<>
-			<div>
-				<a href="https://vite.dev" target="_blank">
-					<img src={viteLogo} className="logo" alt="Vite logo" />
-				</a>
-				<a href="https://react.dev" target="_blank">
-					<img src={reactLogo} className="logo react" alt="React logo" />
-				</a>
-				<a href="https://hono.dev/" target="_blank">
-					<img src={honoLogo} className="logo cloudflare" alt="Hono logo" />
-				</a>
-				<a href="https://workers.cloudflare.com/" target="_blank">
-					<img
-						src={cloudflareLogo}
-						className="logo cloudflare"
-						alt="Cloudflare logo"
-					/>
-				</a>
-			</div>
-			<h1>Vite + React + Hono + Cloudflare</h1>
-			<div className="card">
-				<button
-					onClick={() => setCount((count) => count + 1)}
-					aria-label="increment"
-				>
-					count is {count}
-				</button>
-				<p>
-					Edit <code>src/App.tsx</code> and save to test HMR
-				</p>
-			</div>
-			<div className="card">
-				<button
-					onClick={() => {
-						fetch("/api/")
-							.then((res) => res.json() as Promise<{ name: string }>)
-							.then((data) => setName(data.name));
-					}}
-					aria-label="get name"
-				>
-					Name from API is: {name}
-				</button>
-				<p>
-					Edit <code>worker/index.ts</code> to change the name
-				</p>
-			</div>
-			<p className="read-the-docs">Click on the logos to learn more</p>
-		</>
-	);
+/**
+ * The URL picks the screen (see app/nav.ts): no book → the start card; a
+ * book → the main screen. A password book reached from outside (the picker,
+ * a refresh, a link) is unlocked in the start card first; one that locks
+ * while in use is unlocked in place.
+ */
+export default function App() {
+	const [{ loaded, books, opened, currentId }, library] = useLibrary();
+	const [syncState] = useSync();
+	const { autoLock } = usePrefs();
+	const route = useRoute();
+	const [entered, setEntered] = useState(false);
+	const [recovering, setRecovering] = useState<string | null>(null);
+	const [autoLocked, setAutoLocked] = useState(false);
+
+	const book = route.book ? books.find((b) => b.id === route.book) : undefined;
+	const cloudPending = syncState.mode === "google" && !syncState.firstSyncDone;
+	const locked = !!book && hasPassword(book) && !opened[book.id];
+
+	// Back at the picker: the next password book is unlocked in the card again.
+	if (!route.book && entered) setEntered(false);
+	// A book that can be shown directly counts as entered.
+	if (book && !locked && !recovering && !entered) setEntered(true);
+
+	// A book that isn't here (deleted, another device's link): back to the picker.
+	useEffect(() => {
+		if (loaded && route.book && !book && !cloudPending) navigate({}, { replace: true });
+	}, [loaded, route.book, book, cloudPending]);
+	// Remember the last book (the picker lists it first).
+	useEffect(() => {
+		if (book && book.id !== currentId) library.select(book.id);
+	}, [book, currentId, library]);
+
+	// Lock password books after `autoLock` minutes without any activity.
+	const lockRef = useRef(() => {});
+	useEffect(() => {
+		lockRef.current = () => {
+			if (!library.anyUnlocked) return;
+			library.lockAll();
+			setAutoLocked(true);
+		};
+	});
+	useEffect(() => {
+		if (autoLock === 0) return;
+		let timer = window.setTimeout(() => lockRef.current(), autoLock * 60_000);
+		const reset = () => {
+			setAutoLocked(false);
+			window.clearTimeout(timer);
+			timer = window.setTimeout(() => lockRef.current(), autoLock * 60_000);
+		};
+		for (const ev of ACTIVITY) window.addEventListener(ev, reset, { passive: true });
+		return () => {
+			window.clearTimeout(timer);
+			for (const ev of ACTIVITY) window.removeEventListener(ev, reset);
+		};
+	}, [autoLock]);
+
+	if (!loaded) return null;
+	if (!book || recovering || (locked && !entered)) {
+		return (
+			<StartFlow
+				route={book ? {} : route}
+				unlockBook={locked && !entered && !recovering ? book : undefined}
+				recovering={recovering}
+				onUnlocked={(_id, viaRecovery) => (viaRecovery ? setRecovering(_id) : setEntered(true))}
+				onRecoveredDone={() => {
+					setRecovering(null);
+					setEntered(true);
+				}}
+			/>
+		);
+	}
+	return <MainScreen key="main" book={book} route={route} autoLocked={autoLocked} />;
 }
-
-export default App;

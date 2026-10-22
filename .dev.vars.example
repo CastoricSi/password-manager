@@ -1,0 +1,10 @@
+# Copy to .dev.vars for local development (never commit .dev.vars).
+# For production use: npx wrangler secret put <NAME>   (see README)
+GOOGLE_CLIENT_ID=xxxxxxxx.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-xxxxxxxx
+# Any long random string, e.g. from: openssl rand -base64 32
+SESSION_SECRET=change-me-to-a-long-random-string
+# For accepting shared books (Google file picker): a browser API key and the
+# Cloud project *number*.
+GOOGLE_API_KEY=AIzaSyxxxxxxxx
+GOOGLE_APP_ID=123456789012

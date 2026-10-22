@@ -1,20 +1,13 @@
 {
 	"name": "password-manager",
-	"description": "A template for building a React application with Vite, Hono, and Cloudflare Workers",
-	"cloudflare": {
-		"label": "Vite React Template",
-		"products": [
-			"Workers"
-		],
-		"categories": [],
-		"preview_icon_url": "https://imagedelivery.net/wSMYJvS3Xw-n339CbDyDIA/532a5378-9717-4964-385b-5fafd2160200/public",
-		"preview_image_url": "https://imagedelivery.net/wSMYJvS3Xw-n339CbDyDIA/ec7f4be5-d1d6-4e94-0851-126341745400/preview",
-		"publish": true
-	},
+	"description": "密码管理器 — a simple, private, end-to-end encrypted password book.",
 	"dependencies": {
 		"hono": "4.11.1",
+		"lucide-react": "^1.21.0",
+		"motion": "^14.5.0",
 		"react": "19.2.1",
-		"react-dom": "19.2.1"
+		"react-dom": "19.2.1",
+		"sityle": "https://github.com/CastoricSi/sityle/releases/download/v0.8.3/sityle-0.8.3.tgz"
 	},
 	"devDependencies": {
 		"@cloudflare/vite-plugin": "1.52.1",
@@ -30,6 +23,7 @@
 		"typescript": "5.9.3",
 		"typescript-eslint": "8.48.0",
 		"vite": "^7.0.0",
+		"vitest": "^4.1.9",
 		"wrangler": "4.136.1"
 	},
 	"private": true,
@@ -40,7 +34,13 @@
 		"deploy": "wrangler deploy",
 		"dev": "vite",
 		"lint": "eslint .",
-		"preview": "npm run build && vite preview"
+		"predev": "node scripts/secrets.mjs dev --if-present",
+		"preview": "npm run build && vite preview",
+		"secrets:dev": "node scripts/secrets.mjs dev",
+		"secrets:prod": "node scripts/secrets.mjs prod",
+		"test": "vitest run",
+		"test:watch": "vitest"
 	},
-	"type": "module"
+	"type": "module",
+	"version": "1.0.0"
 }

@@ -3,13 +3,33 @@
 	"name": "password-manager",
 	"main": "./src/worker/index.ts",
 	"compatibility_date": "2025-10-08",
-	"compatibility_flags": ["nodejs_compat"],
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
 	"observability": {
 		"enabled": true
 	},
 	"upload_source_maps": true,
 	"assets": {
 		"directory": "./dist/client",
-		"not_found_handling": "single-page-application"
-	}
+		"not_found_handling": "single-page-application",
+		"run_worker_first": [
+			"/api/*"
+		]
+	},
+	"kv_namespaces": [
+		{
+			"binding": "SHARES"
+		}
+	],
+	"routes": [
+		{
+			"pattern": "pw.si16.app",
+			"custom_domain": true
+		},
+		{
+			"pattern": "password.si16.app",
+			"custom_domain": true
+		}
+	]
 }

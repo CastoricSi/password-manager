@@ -1,0 +1,1005 @@
+/*
+ * The app's own CSS: layout and spacing only. Every colour, font, radius,
+ * shadow and timing comes from sityle's tokens (--si-*); every component
+ * look comes from sityle's components. Classes are prefixed pm-.
+ */
+
+:root {
+	/* one height for every footer: sidebar, list, entry */
+	--pm-foot: 56px;
+	/* plain sans everywhere; 宋体 only for avatars (sityle) and the brand title */
+	--si-font-heading: var(--si-font-sans);
+}
+
+html {
+	font-size: 16px; /* "large text" sets 18px; sityle sizes are rem */
+	-webkit-text-size-adjust: 100%;
+}
+
+#root {
+	min-height: 100dvh;
+	display: flex;
+	flex-direction: column;
+}
+
+::selection {
+	background: var(--si-jade-soft);
+}
+
+::-webkit-scrollbar {
+	width: 10px;
+	height: 10px;
+}
+::-webkit-scrollbar-thumb {
+	background: var(--si-line);
+	border-radius: 999px;
+	border: 3px solid transparent;
+	background-clip: padding-box;
+}
+
+button {
+	font: inherit;
+}
+
+/* ── generic ── */
+.pm-stack {
+	display: grid;
+	gap: 14px;
+	min-width: 0;
+}
+.pm-stack.is-loose {
+	gap: 22px;
+}
+.pm-stack.is-tight {
+	gap: 6px;
+}
+.pm-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	min-width: 0;
+}
+.pm-row.is-end {
+	justify-content: flex-end;
+}
+.pm-row.is-spread {
+	justify-content: space-between;
+}
+.pm-row.is-center {
+	justify-content: center;
+}
+.pm-row.is-nowrap {
+	flex-wrap: nowrap;
+}
+.pm-grow {
+	flex: 1;
+	min-width: 0;
+}
+.pm-block {
+	width: 100%;
+}
+.pm-truncate {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+.pm-sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	white-space: nowrap;
+}
+
+.pm-title {
+	font: 700 1.1875rem/1.35 var(--si-font-sans);
+	letter-spacing: 0.02em;
+	overflow-wrap: anywhere;
+}
+.pm-heading {
+	font: 700 1.5rem/1.3 var(--si-font-sans);
+	letter-spacing: 0.02em;
+	overflow-wrap: anywhere;
+}
+.pm-label {
+	font: 500 0.8125rem/1.4 var(--si-font-sans);
+	color: var(--si-ink-3);
+}
+.pm-muted {
+	color: var(--si-ink-2);
+	font-size: 0.875rem;
+}
+.pm-faint {
+	color: var(--si-ink-3);
+	font-size: 0.8125rem;
+}
+.pm-error {
+	color: var(--si-cinnabar-text);
+	font-size: 0.875rem;
+}
+.pm-warn {
+	color: var(--si-gold-text);
+	font-size: 0.875rem;
+}
+.pm-ok {
+	color: var(--si-jade-text);
+	font-size: 0.875rem;
+}
+.pm-divider {
+	border: 0;
+	border-top: 1px solid var(--si-line);
+	margin: 0;
+}
+
+/* A framed list of sityle ListItems. */
+.pm-list {
+	display: grid;
+	gap: 2px;
+	padding: 4px;
+	margin: 0;
+	list-style: none;
+	border: 1px solid var(--si-line);
+	border-radius: var(--si-r-lg);
+	background: var(--si-paper-raised);
+}
+
+/* ── before a book is open (start, wizard, unlock) ── */
+.pm-auth {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	padding-left: max(16px, env(safe-area-inset-left, 0px));
+	padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.pm-auth-top {
+	display: flex;
+	justify-content: flex-end;
+	padding: max(12px, env(safe-area-inset-top, 0px)) 0 0;
+}
+.pm-auth-main {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding-bottom: 48px;
+}
+.pm-auth-card {
+	width: 100%;
+	max-width: 460px;
+	height: min(740px, calc(100dvh - 96px));
+	padding: 28px;
+	display: flex;
+	flex-direction: column;
+}
+/* Steps slide inside the card. `clip` (not `hidden`): the card is not a
+   scroll container, so an input that focuses itself mid-slide can't make
+   the browser scroll the card and fight the animation. */
+.pm-auth {
+	overflow: clip;
+}
+.pm-auth-card {
+	position: relative;
+	overflow: clip;
+}
+/* 10px inner padding leaves room for focus rings; only the long steps
+   (unlock, new password) scroll here — the wizard and the book list scroll
+   their own parts. */
+.pm-auth-step {
+	position: absolute;
+	inset: 18px;
+	padding: 10px;
+	display: flex;
+	flex-direction: column;
+	overflow-x: hidden;
+	overflow-y: auto;
+}
+.pm-auth-step.is-books,
+.pm-auth-step.is-new {
+	overflow: hidden;
+}
+/* icon + big title: start and book picker only */
+.pm-brand {
+	flex: none;
+	display: grid;
+	justify-items: center;
+	gap: 6px;
+	padding: 12px 0 28px;
+	text-align: center;
+}
+.pm-brand h1 {
+	margin-top: 8px;
+	font: 700 2rem/1.2 var(--si-font-serif);
+	letter-spacing: 0.06em;
+}
+/* book picker: header and buttons stay, the books scroll in their frame */
+.pm-books {
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 22px;
+}
+.pm-books > * {
+	flex: none;
+}
+.pm-books > .pm-books-list {
+	/* hugs the books; once they don't fit, it stops growing and scrolls */
+	flex: 0 1 auto;
+	min-height: 0;
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+}
+.pm-books-list > * {
+	flex: none; /* rows keep their height; the list scrolls instead */
+}
+.pm-auth-card .pm-wizard {
+	flex: 1;
+	height: auto;
+	min-height: 0;
+}
+.pm-wizard {
+	height: min(670px, calc(100dvh - 210px));
+	min-height: 420px;
+	display: grid;
+	grid-template-rows: auto minmax(0, 1fr);
+	gap: 20px;
+}
+.pm-wizard-step {
+	display: flex;
+	flex-direction: column;
+	overflow-y: auto;
+	margin: -6px -10px;
+	padding: 6px 10px;
+}
+/* Each wizard step fills the card; a flexible space above the actions
+   keeps 下一步 / 完成 at the bottom. */
+.pm-wizard-step > form {
+	flex: 1 0 auto;
+	display: flex;
+	flex-direction: column;
+}
+.pm-wizard-actions {
+	margin-top: auto;
+}
+/* Phones: no card — the steps fill the page. */
+@media (max-width: 600px) {
+	.pm-auth-main {
+		align-items: stretch;
+		padding-bottom: 0;
+	}
+	.pm-auth-card {
+		max-width: none;
+		height: calc(100dvh - 56px - env(safe-area-inset-top, 0px));
+		border: 0;
+		border-radius: 0;
+		background: transparent;
+		box-shadow: none;
+	}
+	.pm-auth-step {
+		inset: 4px -10px max(6px, env(safe-area-inset-bottom, 0px));
+	}
+}
+
+
+/* ── main screen: sidebar | list | entry (narrower: ☰ drawer; phone: pages) ── */
+.pm-main {
+	height: 100dvh;
+	display: flex;
+}
+.pm-side {
+	width: 256px;
+	flex: none;
+	border-right: 1px solid var(--si-line);
+	background: color-mix(in srgb, var(--si-paper) 55%, var(--si-paper-raised));
+}
+.pm-drawer {
+	position: fixed;
+	inset: 0;
+	z-index: 300;
+}
+.pm-drawer-scrim {
+	position: absolute;
+	inset: 0;
+	background: var(--si-scrim);
+	animation: pm-fade var(--si-t-base) var(--si-ease-out);
+}
+.pm-drawer .pm-side {
+	position: absolute;
+	inset: 0 auto 0 0;
+	width: min(288px, 85vw);
+	box-shadow: var(--si-e3);
+	animation: pm-slide var(--si-t-slow) var(--si-ease-out);
+}
+@keyframes pm-fade {
+	from {
+		opacity: 0;
+	}
+}
+@keyframes pm-slide {
+	from {
+		transform: translateX(-100%);
+	}
+}
+.pm-only-narrow {
+	display: none;
+}
+@media (max-width: 1023px) {
+	.pm-main > .pm-side {
+		display: none;
+	}
+	.pm-only-narrow {
+		display: inline-flex;
+	}
+}
+
+/* sidebar contents */
+.pm-nav {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+}
+.pm-nav-brand {
+	/* the three headers (sidebar, list, entry): 56px + a 1px line */
+	height: calc(57px + env(safe-area-inset-top, 0px));
+	padding: env(safe-area-inset-top, 0px) 6px 0 16px;
+	border-bottom: 1px solid var(--si-line);
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font: 700 1.125rem/1 var(--si-font-serif);
+	letter-spacing: 0.04em;
+	flex: none;
+}
+.pm-nav-scroll {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+	padding: 12px 8px;
+}
+.pm-nav-foot {
+	flex: none;
+	height: calc(var(--pm-foot) + env(safe-area-inset-bottom, 0px));
+	padding: 0 8px env(safe-area-inset-bottom, 0px);
+	border-top: 1px solid var(--si-line);
+	display: flex;
+	align-items: center;
+}
+.pm-nav-section {
+	margin: 18px 0 4px;
+	padding: 0 4px 0 12px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+.pm-cat {
+	position: relative;
+	list-style: none;
+}
+.pm-cat .si-nav {
+	padding-right: 44px;
+}
+.pm-cat-more {
+	position: absolute;
+	right: 2px;
+	top: 0;
+}
+.pm-cat-more .si-iconbtn {
+	width: 34px;
+	height: 38px;
+}
+@media (hover: hover) {
+	.pm-cat-more {
+		opacity: 0;
+		transition: opacity var(--si-t-quick);
+	}
+	.pm-cat:hover .pm-cat-more,
+	.pm-cat:focus-within .pm-cat-more {
+		opacity: 1;
+	}
+	}
+.pm-cat .si-menu {
+	left: auto;
+	right: 0;
+}
+
+/* book switcher (top of the sidebar) */
+.pm-switcher {
+	padding: 12px 8px 0;
+}
+.pm-switcher .si-menu-anchor {
+	display: block;
+}
+.pm-switcher .si-menu {
+	right: 0;
+	max-height: 70dvh;
+	overflow-y: auto;
+}
+.pm-switcher-button {
+	width: 100%;
+	padding: 8px 10px;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	border: 1px solid var(--si-line);
+	border-radius: var(--si-r-md);
+	background: var(--si-paper-raised);
+	color: var(--si-ink);
+	text-align: left;
+	cursor: pointer;
+	transition: border-color var(--si-t-base);
+}
+.pm-switcher-button:hover,
+.pm-switcher-button[aria-expanded="true"] {
+	border-color: var(--si-jade);
+}
+.pm-switcher-button > svg:last-child {
+	flex: none;
+	width: 15px;
+	height: 15px;
+	color: var(--si-ink-3);
+}
+.pm-book-icon {
+	flex: none;
+	width: 32px;
+	height: 32px;
+	border-radius: var(--si-r-sm);
+	display: grid;
+	place-items: center;
+	background: var(--si-jade-soft);
+	color: var(--si-jade-text);
+}
+.pm-book-icon svg {
+	width: 16px;
+	height: 16px;
+}
+.pm-two-line {
+	flex: 1;
+	min-width: 0;
+	display: grid;
+	line-height: 1.3;
+}
+.pm-two-line > * {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+.pm-two-line small {
+	font-size: 0.75rem;
+	color: var(--si-ink-3);
+}
+
+/* list column */
+.pm-listcol {
+	width: 340px;
+	flex: none;
+	display: flex;
+	flex-direction: column;
+	border-right: 1px solid var(--si-line);
+	background: var(--si-paper-raised);
+}
+.pm-listcol.is-table {
+	flex: 1;
+	width: auto;
+	min-width: 0;
+	border-right: 0;
+}
+@media (min-width: 1280px) {
+	.pm-listcol {
+		width: 384px;
+	}
+}
+.pm-listhead {
+	flex: none;
+	padding-top: env(safe-area-inset-top, 0px);
+	border-bottom: 1px solid var(--si-line);
+}
+.pm-listhead-bar {
+	height: 56px;
+	padding: 0 12px 0 16px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.pm-listhead-bar h1 {
+	font: 700 1rem/1.3 var(--si-font-sans);
+}
+/* title | search (centred, narrow) | New: the two sides share the rest equally */
+/* search (left, up to 360px; narrows first when space runs short) | New
+   (right, never shrinks) */
+.pm-listhead-end {
+	margin-left: auto;
+	flex: none;
+	display: flex;
+}
+.pm-listhead-search {
+	flex: 1 1 360px;
+	max-width: 360px;
+	min-width: 0;
+}
+@media (max-width: 767px) {
+	/* phones: ☰ + a full-width search; New is a floating button */
+	.pm-listhead-search {
+		flex: 1;
+		max-width: none;
+	}
+	.pm-listbody {
+		padding-bottom: 96px; /* the last rows stay clear of the floating button */
+	}
+}
+.pm-listhead-search .si-input {
+	height: 38px;
+}
+.pm-listbody {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+	padding: 8px;
+}
+.pm-listbody.is-table {
+	padding: 0;
+	overflow: auto;
+}
+.pm-listfoot {
+	flex: none;
+	height: calc(var(--pm-foot) + env(safe-area-inset-bottom, 0px));
+	align-items: center;
+	padding: 0 16px env(safe-area-inset-bottom, 0px);
+	border-top: 1px solid var(--si-line);
+	display: flex;
+	justify-content: space-between;
+	gap: 8px;
+	font-size: 0.75rem;
+	color: var(--si-ink-3);
+}
+.pm-listfoot span {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+}
+.pm-listfoot svg {
+	width: 13px;
+	height: 13px;
+}
+.pm-empty {
+	padding: 40px 16px;
+	text-align: center;
+	color: var(--si-ink-2);
+}
+
+/* the entry / placeholder area */
+.pm-pane {
+	flex: 1;
+	min-width: 0;
+	overflow-y: auto;
+	background: var(--si-paper);
+}
+.pm-pane-inner {
+	max-width: 680px;
+	margin: 0 auto;
+	padding: 32px;
+}
+.pm-pane-back {
+	display: none;
+	margin: -8px 0 12px -8px;
+}
+.pm-only-wide {
+	display: inline-flex;
+}
+@media (max-width: 767px) {
+	.pm-only-wide {
+		display: none;
+	}
+}
+.pm-placeholder {
+	display: grid;
+	justify-items: center;
+	gap: 8px;
+	padding-top: 15vh;
+	text-align: center;
+}
+.pm-placeholder img.is-dim {
+	opacity: 0.35;
+	filter: grayscale(0.4);
+}
+.pm-locked {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	background: var(--si-paper);
+}
+.pm-locked-body {
+	flex: 1;
+	overflow-y: auto;
+	padding: 8vh 20px 32px;
+}
+.pm-locked-box {
+	max-width: 340px;
+	margin: 0 auto;
+	display: grid;
+	gap: 18px;
+}
+.pm-locked-head {
+	display: grid;
+	justify-items: center;
+	gap: 6px;
+	text-align: center;
+}
+
+/* table layout's side panel */
+.pm-detail {
+	flex: none;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	border-left: 1px solid var(--si-line);
+	background: var(--si-paper);
+}
+.pm-detail .pm-pane {
+	flex: 1;
+	min-height: 0;
+	flex-shrink: 0;
+}
+.pm-table tbody tr {
+	cursor: pointer;
+}
+
+@media (max-width: 767px) {
+	.pm-listcol {
+		width: 100%;
+		border-right: 0;
+	}
+	.pm-listcol.is-behind,
+	.pm-pane.is-idle {
+		display: none;
+	}
+	.pm-pane-inner {
+		padding: max(16px, env(safe-area-inset-top, 0px)) 16px 24px;
+	}
+	.pm-pane-back {
+		display: inline-flex;
+	}
+}
+.pm-only-phone {
+	display: none;
+}
+@media (max-width: 767px) {
+	.pm-only-phone {
+		display: block;
+	}
+}
+
+/* ── table layout ── */
+.pm-table {
+	width: 100%;
+	border-collapse: separate;
+	border-spacing: 0;
+	font-size: 0.875rem;
+}
+.pm-table th {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	padding: 8px 12px;
+	background: color-mix(in srgb, var(--si-paper) 55%, var(--si-paper-raised));
+	border-bottom: 1px solid var(--si-line);
+	color: var(--si-ink-3);
+	font-size: 0.75rem;
+	font-weight: 500;
+	text-align: left;
+	white-space: nowrap;
+}
+.pm-table td {
+	padding: 6px 12px;
+	border-bottom: 1px solid var(--si-line);
+	background: var(--si-paper-raised);
+	vertical-align: middle;
+	transition: background-color var(--si-t-quick);
+}
+.pm-table th:first-child,
+.pm-table td:first-child {
+	padding-left: 16px;
+}
+.pm-table tr:hover td {
+	background: var(--si-paper);
+}
+.pm-table tr[aria-selected="true"] td {
+	background: var(--si-jade-soft);
+}
+.pm-table-name {
+	max-width: 260px;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	border: 0;
+	padding: 0;
+	background: none;
+	color: var(--si-ink);
+	font-weight: 500;
+	text-align: left;
+	cursor: pointer;
+}
+.pm-table-name:hover {
+	color: var(--si-jade-text);
+}
+.pm-cell {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	min-width: 0;
+}
+.pm-cell-text {
+	flex: 1;
+	min-width: 0;
+	max-width: 240px;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+.pm-cell-text.is-mono {
+	font-family: var(--si-font-mono);
+	letter-spacing: 0.04em;
+}
+.pm-link {
+	color: var(--si-jade-text);
+	text-decoration: none;
+}
+.pm-link:hover {
+	text-decoration: underline;
+}
+.pm-cell-action {
+	flex: none;
+	width: 28px;
+	height: 28px;
+	display: grid;
+	place-items: center;
+	border: 0;
+	border-radius: var(--si-r-sm);
+	background: none;
+	color: var(--si-ink-3);
+	cursor: pointer;
+	transition:
+		opacity var(--si-t-quick),
+		background-color var(--si-t-quick),
+		color var(--si-t-quick);
+}
+.pm-cell-action svg {
+	width: 14px;
+	height: 14px;
+}
+.pm-cell-action:hover {
+	color: var(--si-ink);
+	background: var(--si-jade-soft);
+}
+.pm-cell-action.is-done {
+	color: var(--si-jade-text);
+}
+@media (hover: hover) {
+	.pm-cell-action:not(.is-done) {
+		opacity: 0;
+	}
+	.pm-cell:hover .pm-cell-action,
+	.pm-cell-action:focus-visible {
+		opacity: 1;
+	}
+}
+
+/* ── attachments ── */
+.pm-files {
+	display: grid;
+	gap: 6px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+.pm-file {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 6px 6px 6px 6px;
+	border: 1px solid var(--si-line);
+	border-radius: var(--si-r-md);
+	background: var(--si-paper-raised);
+}
+.pm-file-thumb {
+	flex: none;
+	width: 40px;
+	height: 40px;
+	padding: 0;
+	border: 0;
+	border-radius: var(--si-r-sm);
+	overflow: hidden;
+	display: grid;
+	place-items: center;
+	background: var(--si-paper-sunk);
+	color: var(--si-ink-3);
+	cursor: zoom-in;
+}
+span.pm-file-thumb {
+	cursor: default;
+}
+.pm-file-thumb img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+.pm-file-thumb svg {
+	width: 18px;
+	height: 18px;
+}
+.pm-preview {
+	display: block;
+	width: 100%;
+	max-height: 62dvh;
+	object-fit: contain;
+	border-radius: var(--si-r-md);
+	background: var(--si-paper-sunk);
+}
+
+/* ── entry page ── */
+.pm-editor {
+	min-height: 100%;
+	display: flex;
+	flex-direction: column;
+}
+.pm-editor-body {
+	flex: 1;
+}
+.pm-name-input {
+	height: 40px;
+	font: 700 1.0625rem/1.3 var(--si-font-sans);
+}
+.pm-custom-field {
+	display: grid;
+	grid-template-columns: minmax(120px, 34%) minmax(0, 1fr) auto;
+	align-items: start;
+	gap: 8px;
+}
+.pm-custom-actions {
+	display: flex;
+	padding-top: 8px;
+}
+@media (max-width: 600px) {
+	.pm-custom-field {
+		grid-template-columns: minmax(0, 1fr) auto;
+	}
+	.pm-custom-name {
+		grid-column: 1 / -1;
+	}
+}
+.pm-editor-foot {
+	position: sticky;
+	bottom: 0;
+	z-index: 5;
+	border-top: 1px solid var(--si-line);
+	background: color-mix(in srgb, var(--si-paper) 55%, var(--si-paper-raised));
+	padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.pm-editor-foot-inner {
+	max-width: 680px;
+	margin: 0 auto;
+	height: calc(var(--pm-foot) - 1px); /* + its 1px top border */
+	padding: 0 32px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.pm-foot-btn.si-btn {
+	height: 38px; /* the height of the 设置 row beside it */
+}
+.pm-editor-status {
+	text-align: right;
+	overflow: hidden;
+	white-space: nowrap;
+}
+@media (max-width: 767px) {
+	.pm-editor-foot-inner {
+		padding: 0 16px;
+	}
+	.pm-icon-on-phone .si-btn-label > span {
+		display: none;
+	}
+	.pm-icon-on-phone {
+		padding: 0 12px;
+	}
+}
+
+/* ── settings ── */
+.pm-settings {
+	height: min(560px, calc(100dvh - 210px));
+	display: grid;
+	grid-template-rows: auto minmax(0, 1fr);
+	gap: 18px;
+	color: var(--si-ink);
+	font-size: 0.9375rem;
+}
+.pm-settings-panel {
+	overflow-x: hidden;
+	overflow-y: auto;
+	padding-bottom: 28px; /* breathing room above the footer */
+	margin-right: -12px;
+	padding-right: 12px;
+	align-content: start;
+}
+.pm-faq summary {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 12px 0;
+	cursor: pointer;
+	list-style: none;
+}
+.pm-faq summary::-webkit-details-marker {
+	display: none;
+}
+.pm-faq summary span {
+	flex: 1;
+}
+.pm-faq summary svg {
+	width: 16px;
+	height: 16px;
+	color: var(--si-ink-3);
+	transition: transform var(--si-t-slow) var(--si-ease-spring);
+}
+.pm-faq[open] summary svg {
+	transform: rotate(180deg);
+}
+.pm-faq p {
+	padding-bottom: 14px;
+	line-height: 1.7;
+}
+
+/* phones: settings and the new-book wizard fill the full-screen dialog */
+.si-dialog.is-full .pm-settings,
+.si-dialog.is-full .pm-wizard {
+	height: auto;
+	min-height: 0;
+}
+
+/* settings footer: a line across the dialog, and the same space above and
+   below 关闭 */
+.si-dialog:has(.pm-settings) {
+	padding-bottom: max(14px, env(safe-area-inset-bottom, 0px));
+}
+.si-dialog:has(.pm-settings) .si-dialog-actions {
+	margin: 0 -24px;
+	padding: 14px 24px 0;
+	border-top: 1px solid var(--si-line);
+}
+
+/* the fold button sits in the gutter left of the avatar */
+.pm-fold {
+	flex: none;
+	margin-left: -12px;
+}
+
+/* the entry's first row (← · avatar · name) sticks to the top of the pane */
+.pm-entry-head {
+	position: sticky;
+	top: 0;
+	z-index: 4;
+	flex: none;
+	min-height: calc(57px + env(safe-area-inset-top, 0px)); /* same as the sidebar and list headers */
+	padding-top: env(safe-area-inset-top, 0px);
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	background: var(--si-paper);
+	border-bottom: 1px solid var(--si-line);
+}
+.pm-entry-head-inner {
+	width: 100%;
+	max-width: 680px;
+	margin: 0 auto;
+	padding: 8px 32px;
+}
+@media (max-width: 767px) {
+	.pm-entry-head-inner {
+		padding: 8px 16px;
+	}
+}
+
+

@@ -1,0 +1,36 @@
+/* Privacy policy / terms: plain reading pages in the app's paper colours. */
+:root {
+	color-scheme: light dark;
+	--paper: #f3f0e8;
+	--ink: #2b2a26;
+	--muted: #6b675e;
+	--line: #ddd8cc;
+	--accent: #2f6b4f;
+}
+@media (prefers-color-scheme: dark) {
+	:root {
+		--paper: #1d1c19;
+		--ink: #e6e1d6;
+		--muted: #a39d90;
+		--line: #3a3832;
+		--accent: #8cc2a4;
+	}
+}
+body {
+	margin: 0;
+	background: var(--paper);
+	color: var(--ink);
+	font: 16px/1.75 system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+main {
+	max-width: 720px;
+	margin: 0 auto;
+	padding: 32px 16px 64px;
+}
+h1 { font-size: 1.6rem; margin: 0.5em 0 0; }
+h2 { font-size: 1.1rem; margin: 1.8em 0 0.4em; }
+.date, .back { color: var(--muted); font-size: 0.9rem; }
+a { color: var(--accent); }
+code { font-size: 0.9em; }
+li { margin: 0.3em 0; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 56px 0 32px; }
