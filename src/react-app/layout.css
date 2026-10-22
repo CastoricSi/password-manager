@@ -314,15 +314,20 @@ button {
 }
 .pm-drawer-scrim {
 	position: absolute;
-	inset: 0;
+	inset: calc(-1 * var(--si-overscan)) 0; /* past the viewport: Safari shows the page under its bars */
 	background: var(--si-scrim);
 	animation: pm-fade var(--si-t-base) var(--si-ease-out);
 }
 .pm-drawer .pm-side {
+	--pm-side-paper: color-mix(in srgb, var(--si-paper) 55%, var(--si-paper-raised));
 	position: absolute;
 	inset: 0 auto 0 0;
 	width: min(288px, 85vw);
-	box-shadow: var(--si-e3);
+	/* copies of the panel above and below it run its paper on under Safari's bars */
+	box-shadow:
+		var(--si-e3),
+		0 calc(-1 * var(--si-overscan)) 0 var(--pm-side-paper),
+		0 var(--si-overscan) 0 var(--pm-side-paper);
 	animation: pm-slide var(--si-t-slow) var(--si-ease-out);
 }
 @keyframes pm-fade {
@@ -975,6 +980,10 @@ span.pm-file-thumb {
    below 关闭 */
 .si-dialog:has(.pm-settings) {
 	padding-bottom: max(14px, env(safe-area-inset-bottom, 0px));
+}
+/* full screen on phones: sityle runs the paper on below the viewport (--si-overscan) */
+.si-dialog.is-full:has(.pm-settings) {
+	padding-bottom: calc(max(14px, env(safe-area-inset-bottom, 0px)) + var(--si-overscan));
 }
 .si-dialog:has(.pm-settings) .si-dialog-actions {
 	margin: 0 -24px;
