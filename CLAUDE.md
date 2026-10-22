@@ -33,6 +33,10 @@ sharing.
 
 ## Flows
 
+- **Build info**: the start screens (`AuthLayout`) end with "版本 1.0.0 · <commit> ·
+  sityle x.y.z" (hover: build time) — `__PM_BUILD__`, set in `vite.config.ts`
+  (commit from Cloudflare's `WORKERS_CI_COMMIT_SHA`, else git; "+" = built with
+  uncommitted changes).
 - **Start** (`screens/start/StartFlow`): first time "use local data" / "use a
   Google account" (remembered) → book picker (last used first; share notices;
   no books → straight to the wizard) → unlock (hint, recovery question with

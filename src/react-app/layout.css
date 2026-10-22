@@ -163,7 +163,19 @@ button {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	padding-bottom: 48px;
+	padding-bottom: 20px;
+}
+/* which build this is, quietly at the foot of the start screens */
+.pm-auth-version {
+	flex: none;
+	height: calc(28px + env(safe-area-inset-bottom, 0px));
+	padding-bottom: env(safe-area-inset-bottom, 0px);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--si-ink-3);
+	font: 400 0.75rem/1 var(--si-font-mono);
+	user-select: text;
 }
 .pm-auth-card {
 	width: 100%;
@@ -272,14 +284,14 @@ button {
 	}
 	.pm-auth-card {
 		max-width: none;
-		height: calc(100dvh - 56px - env(safe-area-inset-top, 0px));
+		height: calc(100dvh - 56px - 28px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
 		border: 0;
 		border-radius: 0;
 		background: transparent;
 		box-shadow: none;
 	}
 	.pm-auth-step {
-		inset: 4px -10px max(6px, env(safe-area-inset-bottom, 0px));
+		inset: 4px -10px 6px; /* the version line below holds the safe area */
 	}
 }
 

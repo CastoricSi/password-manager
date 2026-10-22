@@ -4,6 +4,8 @@
 export const zh = {
 	"app.name": "密码管理器",
 	"app.tagline": "盗贼之神也无可奈何的神器",
+	"app.version": "版本 {version}",
+	"app.built": "构建于 {time}",
 
 	"common.save": "保存",
 	"common.cancel": "取消",
@@ -341,6 +343,8 @@ export type MessageKey = keyof typeof zh;
 export const en: Record<MessageKey, string> = {
 	"app.name": "Password Manager",
 	"app.tagline": "So safe even the God of Thieves gives up",
+	"app.version": "Version {version}",
+	"app.built": "Built {time}",
 
 	"common.save": "Save",
 	"common.cancel": "Cancel",

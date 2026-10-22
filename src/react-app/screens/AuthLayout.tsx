@@ -19,7 +19,20 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
 			<main className="pm-auth-main">
 				<div className="si-card pm-auth-card">{children}</div>
 			</main>
+			<BuildInfo />
 		</div>
+	);
+}
+
+/** Which build is running (version · commit · sityle), at the foot of the page; hover shows when it was built. */
+function BuildInfo() {
+	const { t, lang } = usePrefs();
+	const { version, commit, sityle, time } = __PM_BUILD__;
+	const built = new Date(time).toLocaleString(lang === "zh" ? "zh-CN" : "en");
+	return (
+		<footer className="pm-auth-version" title={t("app.built", { time: built })}>
+			{[t("app.version", { version }), commit, `sityle ${sityle}`].filter(Boolean).join(" · ")}
+		</footer>
 	);
 }
 

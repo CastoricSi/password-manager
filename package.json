@@ -7,7 +7,7 @@
 		"motion": "^14.5.0",
 		"react": "19.2.1",
 		"react-dom": "19.2.1",
-		"sityle": "github:CastoricSi/sityle#claude/sityle-ui-review-uh1zlg"
+		"sityle": "https://github.com/CastoricSi/sityle/releases/download/v0.9.1/sityle-0.9.1.tgz"
 	},
 	"devDependencies": {
 		"@cloudflare/vite-plugin": "1.52.1",
