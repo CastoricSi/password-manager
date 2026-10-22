@@ -38,17 +38,19 @@ export function StartFlow({
 	onUnlocked: (bookId: string, viaRecovery: boolean) => void;
 	onRecoveredDone: (bookId: string) => void;
 }) {
-	const [syncState] = useSync();
+	const [syncState, sync] = useSync();
 	const [{ books }, library] = useLibrary();
 	const waitingForCloud = syncState.mode === "google" && !syncState.firstSyncDone && books.length === 0;
-	const firstRun = syncState.mode === null && syncState.status !== "unavailable";
+	// No books here yet (and not waiting for Google's): "local or Google" comes
+	// first, every time — a newcomer never lands in the wizard unasked.
+	const fresh = books.length === 0 && !waitingForCloud && syncState.mode !== "google";
 
 	// The step follows the URL.
 	const step: Step = recovering
 		? { kind: "recovered", id: recovering }
 		: unlockBook
 			? { kind: "unlock", id: unlockBook.id }
-			: route.start === "mode" || (firstRun && !route.start)
+			: route.start === "mode" || (fresh && !route.start)
 				? { kind: "mode" }
 				: route.start === "new" || (books.length === 0 && !waitingForCloud)
 					? { kind: "new" }
@@ -63,7 +65,13 @@ export function StartFlow({
 	}
 
 	const open = (b: BookFile) => navigate({ book: b.id });
-	const fromMode = () => (route.start === "mode" ? goBack({}) : navigate({}, { replace: true }));
+	// Chosen: with no books, local goes on to the wizard (Back returns here);
+	// Google waits for the cloud's books on the picker.
+	const fromMode = () => {
+		if (books.length === 0 && sync.getSnapshot().mode === "local") navigate({ start: "new" }, { replace: route.start === "mode" });
+		else if (route.start === "mode") goBack({});
+		else navigate({}, { replace: true });
+	};
 
 	let key: string = step.kind;
 	let content: React.ReactNode;
@@ -91,12 +99,11 @@ export function StartFlow({
 	} else if (step.kind === "recovered") {
 		content = <NewPasswordForm bookId={step.id} onDone={() => onRecoveredDone(step.id)} />;
 	} else if (step.kind === "new") {
-		const canGoBack = books.length > 0 || syncState.status !== "unavailable";
 		content = (
 			<NewBookWizard
 				defaultName={books.length === 0 ? library.defaultName : ""}
 				onDone={(id) => navigate({ book: id }, { replace: true })}
-				onCancel={canGoBack ? () => (route.start === "new" ? goBack({}) : navigate({ start: "mode" })) : undefined}
+				onCancel={() => (route.start === "new" ? goBack({}) : navigate({ start: "mode" }))}
 			/>
 		);
 	} else {
