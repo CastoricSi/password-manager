@@ -912,9 +912,14 @@ span.pm-file-thumb {
 	font-size: 0.9375rem;
 }
 .pm-settings-panel {
+	--pm-ring-room: calc(var(--si-ring) + 2px); /* fields' focus halo isn't clipped at the edges */
 	overflow-x: hidden;
 	overflow-y: auto;
+	padding-top: var(--pm-ring-room);
 	padding-bottom: 28px; /* breathing room above the footer */
+	padding-left: var(--pm-ring-room);
+	margin-top: calc(-1 * var(--pm-ring-room));
+	margin-left: calc(-1 * var(--pm-ring-room));
 	margin-right: -12px;
 	padding-right: 12px;
 	align-content: start;
