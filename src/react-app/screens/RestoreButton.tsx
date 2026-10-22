@@ -1,11 +1,10 @@
 import { useRef, useState } from "react";
-import { Button, Dialog, type ButtonProps } from "sityle";
+import { Button, ConfirmDialog, Dialog, type ButtonProps } from "sityle";
 
 import { useLibrary } from "@/app/context";
 import { useT } from "@/app/prefs";
 import type { BookFile } from "@/lib/bookfile";
 import { readBackup } from "@/lib/storage";
-import { ConfirmDialog } from "@/ui/ConfirmDialog";
 import { useLast } from "@/ui/useLast";
 
 /**

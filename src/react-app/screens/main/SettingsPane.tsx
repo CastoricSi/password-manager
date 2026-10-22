@@ -1,13 +1,12 @@
 import { ChevronDown, Cloud, LayoutList, LogOut, RefreshCw, Table2, Undo2, Upload, UserPlus } from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
-import { Button, Dialog, Group, GroupRow, IconBadge, Segmented, SelectField, Tabs } from "sityle";
+import { Button, ConfirmDialog, Dialog, Group, GroupRow, IconBadge, Segmented, SelectField, Tabs } from "sityle";
 
 import { useLibrary, useSync } from "@/app/context";
 import type { MessageKey } from "@/app/i18n";
 import { AUTO_LOCK_CHOICES, usePrefs } from "@/app/prefs";
 import type { BookFile, Opened } from "@/lib/bookfile";
-import { ConfirmDialog } from "@/ui/ConfirmDialog";
 import { useMediaQuery } from "@/ui/useMediaQuery";
 import { RestoreButton } from "../RestoreButton";
 import { ShareNotices } from "../start/ShareNotices";
@@ -94,7 +93,7 @@ function GeneralTab({ onImported }: { onImported: (id: string) => void }) {
 						]}
 					/>
 				</GroupRow>
-				<GroupRow title={t("layout.label")} hint={t("layout.hint")}>
+				<GroupRow title={t("layout.label")} description={t("layout.hint")}>
 					<Segmented<"list" | "table">
 						label={t("layout.label")}
 						value={layout}
@@ -129,7 +128,7 @@ function GeneralTab({ onImported }: { onImported: (id: string) => void }) {
 			</Group>
 
 			<Group plain title={t("settings.backup")}>
-				<GroupRow title={t("settings.import")} hint={t("settings.importHint")}>
+				<GroupRow title={t("settings.import")} description={t("settings.importHint")}>
 					<RestoreButton icon={<Upload />} onImported={onImported}>
 						{t("settings.import")}
 					</RestoreButton>
@@ -137,8 +136,8 @@ function GeneralTab({ onImported }: { onImported: (id: string) => void }) {
 			</Group>
 
 			<Group plain title={t("settings.danger")}>
-				<GroupRow title={t("settings.reset")} hint={t("settings.resetHint")}>
-					<Button variant="light" color="danger" onClick={() => setConfirmErase(true)}>
+				<GroupRow title={t("settings.reset")} description={t("settings.resetHint")}>
+					<Button variant="light" tone="danger" onClick={() => setConfirmErase(true)}>
 						{t("settings.reset")}
 					</Button>
 				</GroupRow>
@@ -185,7 +184,7 @@ function ChoiceRow<T extends string>({
 			</GroupRow>
 		);
 	return (
-		<GroupRow title={title} hint={hint}>
+		<GroupRow title={title} description={hint}>
 			<Segmented label={title} value={value} onChange={onChange} options={options} />
 		</GroupRow>
 	);
@@ -201,7 +200,7 @@ function AccountTab() {
 	if (state.status === "unavailable") {
 		return (
 			<Group plain title={t("sync.title")}>
-				<GroupRow title={t("sync.unavailable")} hint={t("sync.unavailableHint")} />
+				<GroupRow title={t("sync.unavailable")} description={t("sync.unavailableHint")} />
 			</Group>
 		);
 	}
@@ -236,12 +235,12 @@ function AccountTab() {
 	return (
 		<>
 			<Group plain title={t("sync.title")}>
-				<GroupRow title={state.email ?? t("sync.connected")} hint={<SyncStatusText />}>
+				<GroupRow title={state.email ?? t("sync.connected")} description={<SyncStatusText />}>
 					<Button variant="bordered" icon={<RefreshCw />} loading={state.status === "syncing"} onClick={() => void sync.syncNow()}>
 						{t("sync.now")}
 					</Button>
 				</GroupRow>
-				<GroupRow title={t("sync.alwaysOn")} hint={t("sync.alwaysOnHint")} />
+				<GroupRow title={t("sync.alwaysOn")} description={t("sync.alwaysOnHint")} />
 			</Group>
 
 			<Group plain title={t("share.sharedWithMe")}>
@@ -262,7 +261,7 @@ function AccountTab() {
 				<Group plain title={t("sync.recentlyDeleted")}>
 					<p className="pm-muted">{t("sync.recentlyDeletedHint")}</p>
 					{state.recentlyDeleted.map((r) => (
-						<GroupRow key={r.id} title={r.name} hint={new Date(r.deletedAt!).toLocaleDateString(lang === "zh" ? "zh-CN" : "en-GB")}>
+						<GroupRow key={r.id} title={r.name} description={new Date(r.deletedAt!).toLocaleDateString(lang === "zh" ? "zh-CN" : "en-GB")}>
 							<Button size="sm" variant="bordered" icon={<Undo2 />} onClick={() => void sync.restore(r)}>
 								{t("sync.restore")}
 							</Button>
@@ -272,8 +271,8 @@ function AccountTab() {
 			)}
 
 			<Group plain title={t("sync.account")}>
-				<GroupRow title={t("sync.signOut")} hint={t("sync.signOutHint")}>
-					<Button variant="light" color="danger" icon={<LogOut />} onClick={() => setConfirmSignOut(true)}>
+				<GroupRow title={t("sync.signOut")} description={t("sync.signOutHint")}>
+					<Button variant="light" tone="danger" icon={<LogOut />} onClick={() => setConfirmSignOut(true)}>
 						{t("sync.signOut")}
 					</Button>
 				</GroupRow>

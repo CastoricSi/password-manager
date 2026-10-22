@@ -57,7 +57,7 @@ export function EntryList({
 	return (
 		<div className="pm-stack" style={{ gap: 2 }}>
 			{entries.map((e) => (
-				<ListItem key={e.id} current={e.id === selectedId} leading={<EntryAvatar name={e.name} />} title={e.name} subtitle={e.username || undefined} onClick={() => onSelect(e.id)} />
+				<ListItem key={e.id} current={e.id === selectedId} leading={<EntryAvatar name={e.name} />} title={e.name} description={e.username || undefined} onClick={() => onSelect(e.id)} />
 			))}
 		</div>
 	);

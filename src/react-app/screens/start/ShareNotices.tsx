@@ -16,7 +16,7 @@ export function ShareNotices() {
 	return (
 		<div className="pm-stack is-tight">
 			{syncState.notices.map((n) => (
-				<Note key={n.fileId} tone="accent" icon={<Users />}>
+				<Note key={n.fileId} tone="jade" icon={<Users />}>
 					<div className="pm-stack is-tight">
 						<span>{t("share.notice", { who: n.from, name: n.bookName })}</span>
 						{!syncState.canPick && <span className="pm-faint">{t("share.noPicker")}</span>}

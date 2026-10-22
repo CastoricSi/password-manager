@@ -62,6 +62,8 @@ export function BookSwitcher({
 	return (
 		<div className="pm-switcher">
 			<Menu
+				matchWidth
+				className="pm-switcher-menu"
 				trigger={(p) => (
 					<button type="button" className="pm-switcher-button" {...p}>
 						<span className="pm-book-icon">{current && <BookIcon book={current} open={!!opened[current.id]} />}</span>

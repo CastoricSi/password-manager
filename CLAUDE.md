@@ -14,7 +14,7 @@ tiny "shared with you" notices.
    PWA PNGs in `public/` (maskable one on `#f0f1e9`).
 2. **Eye-friendly and clean — the 丹青 design language** from the `sityle`
    package (github.com/CastoricSi/sityle, installed from a release `.tgz`
-   URL). No Tailwind: screens are built from sityle components; the app's own
+   URL, or from a git branch before it is released). No Tailwind: screens are built from sityle components; the app's own
    `layout.css` only lays things out (classes `pm-*`), using sityle's `--si-*`
    tokens for every colour, font, radius and timing — never raw colours.
    Desktop density, 16px root (18px "large"; sityle sizes are rem).
@@ -55,24 +55,32 @@ sharing.
 
 ## sityle
 
-- `main.tsx` loads `sityle/style.css` then `layout.css`; `app/Theme.tsx` passes
-  the app's theme to `<SiProvider theme>` (sityle owns `<html data-theme>`).
+- `main.tsx` loads `sityle/style.css`, `sityle/base.css` (the page ground: reset,
+  rice-paper body, paper fibre) then `layout.css`. `app/Theme.tsx` passes the
+  app's theme to `<SiProvider theme>` (sityle owns `<html data-theme>`) and the
+  app's words for sityle's own texts to `<SiProvider messages>` (copy, show /
+  hide, cancel, password strength) — so components need no label props for them.
 - Use sityle components first: Button, IconButton, CopyButton, TextField /
   PasswordField / SelectField / TextAreaField (floating labels), Input,
   SearchField, Switch, Segmented, Tabs, Menu, Dialog / ConfirmDialog
   (`seal="删"` on deletes), Card, Group / GroupRow (settings), NavItem
   (sidebar), ListItem, Avatar, Tag, Note, IconBadge, Steps, RadioCard, InkDrop,
   AutoHeight (the start card). SelectField takes `options`, never native
-  <select>. "New" sits in the list header; list / table is a setting
+  <select>. sityle's names: colour is `tone`, an item's second line is
+  `description` (`hint` only under form fields). Menus and select lists float on
+  <body>: place them with Menu's `align` / `matchWidth` / `className`, not with
+  descendant selectors. "New" sits in the list header; list / table is a setting
   (Settings → General).
-- `ui/` only adapts sityle to the app: ConfirmDialog (Cancel in the app's
-  language), fields.ts (password button / strength labels, Caps Lock),
-  Logo / EntryAvatar, CopyIcon (dense table cells), useMediaQuery.
+- `ui/` only adapts sityle to the app: fields.ts (Caps Lock), Logo /
+  EntryAvatar (decorative: the name is written beside it), CopyIcon (dense table
+  cells), useMediaQuery, cn.
 - A piece that would be useful elsewhere belongs in sityle: add it there,
   release (`npm run release:minor` in E:\APP\sityle), bump the URL here.
 - No web fonts are loaded (privacy, offline): sityle's stacks fall back to
   system Chinese fonts.
-- Upgrade: `npm i https://github.com/CastoricSi/sityle/releases/download/vX.Y.Z/sityle-X.Y.Z.tgz`.
+- Upgrade: `npm i https://github.com/CastoricSi/sityle/releases/download/vX.Y.Z/sityle-X.Y.Z.tgz`;
+  an unreleased branch: `npm i github:CastoricSi/sityle#<branch>` (sityle's
+  `prepare` builds it on install). Switch back to the release URL once it is out.
   Working on both at once: `npm i ../sityle` locally (never commit that);
   `vite.config.ts` dedupes React so the link works.
   After installing a new sityle, restart `npm run dev` (Vite doesn't watch
@@ -133,8 +141,8 @@ src/react-app/
   app/             Library (store; SyncHost), SyncController (mode local|google,
                    connect popup, token cache, scheduling, notices, share /
                    unshare / leave / accept via picker), context, prefs, i18n.
-  ui/              Button, Field/Input/PasswordInput/Select/Segmented, Switch,
-                   Steps, Dialog/ConfirmDialog, CopyIcon, Logo/Avatar.
+  ui/              fields.ts (Caps Lock), CopyIcon, Logo / EntryAvatar,
+                   useLast, useMediaQuery, cn.
   screens/         start/ (StartFlow, ShareNotices), NewBookWizard, UnlockForm,
                    NewPasswordForm, RestoreButton, NewPasswordFields,
                    RecoveryFields, and main/ (MainScreen, Sidebar, BookSwitcher,

@@ -1,10 +1,9 @@
 import { Folder, Inbox, Lock, MoreHorizontal, Pencil, Plus, Settings, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { IconButton, Input, Menu, NavItem } from "sityle";
+import { ConfirmDialog, IconButton, Input, Menu, NavItem } from "sityle";
 
 import { useT } from "@/app/prefs";
 import type { Category } from "@/lib/content";
-import { ConfirmDialog } from "@/ui/ConfirmDialog";
 import { Logo } from "@/ui/Logo";
 import { BookSwitcher } from "./BookSwitcher";
 import { SyncBadge } from "./SyncBadge";

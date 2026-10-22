@@ -1,6 +1,6 @@
 import { Check, Download, LogOut, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Button, Group, GroupRow, Note, PasswordField, Switch, TextField } from "sityle";
+import { Button, ConfirmDialog, Group, GroupRow, Note, PasswordField, Switch, TextField } from "sityle";
 
 import { useLibrary, useSync } from "@/app/context";
 import type { MessageKey } from "@/app/i18n";
@@ -8,8 +8,6 @@ import { usePrefs } from "@/app/prefs";
 import { hasPassword, passwordHint, slotsOf, type BookFile, type Opened } from "@/lib/bookfile";
 import { setFeatures } from "@/lib/content";
 import { recoveryHint, recoveryQuestion, unlockWithPassword } from "@/lib/crypto";
-import { ConfirmDialog } from "@/ui/ConfirmDialog";
-import { usePasswordLabels } from "@/ui/fields";
 import { NewPasswordFields } from "../NewPasswordFields";
 import { RecoveryFields } from "../RecoveryFields";
 import { newPasswordError, recoveryInput } from "../validation";
@@ -55,8 +53,8 @@ export function BookTab({ book, opened, onGone, onGoToAccount }: { book: BookFil
 					<>
 						<HintRow book={book} />
 						<RecoveryRow book={book} onRemove={() => setConfirm("removeRecovery")} />
-						<GroupRow title={t("book.removePassword")} hint={t("book.removePasswordHint")}>
-							<Button variant="light" color="danger" onClick={() => setConfirm("removePassword")}>
+						<GroupRow title={t("book.removePassword")} description={t("book.removePasswordHint")}>
+							<Button variant="light" tone="danger" onClick={() => setConfirm("removePassword")}>
 								{t("book.removePassword")}
 							</Button>
 						</GroupRow>
@@ -78,7 +76,7 @@ export function BookTab({ book, opened, onGone, onGoToAccount }: { book: BookFil
 			<Group plain title={t("settings.backup")}>
 				<GroupRow
 					title={t("book.export")}
-					hint={
+					description={
 						exported ? (
 							<span className="pm-ok pm-row" style={{ gap: 4 }}>
 								<Check size={14} />
@@ -104,14 +102,14 @@ export function BookTab({ book, opened, onGone, onGoToAccount }: { book: BookFil
 
 			<Group plain title={t("settings.danger")}>
 				{sharedWithMe ? (
-					<GroupRow title={t("share.leave")} hint={t("share.leaveHint")}>
-						<Button variant="light" color="danger" icon={<LogOut />} onClick={() => setConfirm("leave")}>
+					<GroupRow title={t("share.leave")} description={t("share.leaveHint")}>
+						<Button variant="light" tone="danger" icon={<LogOut />} onClick={() => setConfirm("leave")}>
 							{t("share.leave")}
 						</Button>
 					</GroupRow>
 				) : (
-					<GroupRow title={t("book.delete")} hint={sync.connected ? t("book.deleteSyncedHint") : t("book.deleteHint")}>
-						<Button variant="light" color="danger" icon={<Trash2 />} onClick={() => setConfirm("delete")}>
+					<GroupRow title={t("book.delete")} description={sync.connected ? t("book.deleteSyncedHint") : t("book.deleteHint")}>
+						<Button variant="light" tone="danger" icon={<Trash2 />} onClick={() => setConfirm("delete")}>
 							{t("book.delete")}
 						</Button>
 					</GroupRow>
@@ -172,7 +170,6 @@ export function BookTab({ book, opened, onGone, onGoToAccount }: { book: BookFil
 /** Set (open book) or change (password book) the main password. */
 function PasswordRow({ book }: { book: BookFile }) {
 	const { t } = usePrefs();
-	const labels = usePasswordLabels();
 	const [, library] = useLibrary();
 	const locked = hasPassword(book);
 	const [open, setOpen] = useState(false);
@@ -221,7 +218,7 @@ function PasswordRow({ book }: { book: BookFile }) {
 		return (
 			<GroupRow
 				title={t("settings.mainPassword")}
-				hint={
+				description={
 					done ? (
 						<span className="pm-ok pm-row" style={{ gap: 4 }}>
 							<Check size={14} />
@@ -256,7 +253,6 @@ function PasswordRow({ book }: { book: BookFile }) {
 					label={t("settings.currentPassword")}
 					autoFocus
 					copy={false}
-					labels={labels}
 					value={current}
 					error={currentWrong ? t("settings.currentWrong") : undefined}
 					onChange={(e) => {
@@ -278,7 +274,7 @@ function PasswordRow({ book }: { book: BookFile }) {
 				autoFocus={!locked}
 			/>
 			<TextField label={t("hint.password")} autoComplete="off" value={hint} hint={t("hint.passwordHint")} onChange={(e) => setHint(e.target.value)} />
-			{!locked && <Note tone="warn">{t("setup.remember")}</Note>}
+			{!locked && <Note tone="gold">{t("setup.remember")}</Note>}
 			<div className="pm-row">
 				<Button type="submit" loading={busy}>
 					{t("common.save")}
@@ -365,10 +361,10 @@ function RecoveryRow({ book, onRemove }: { book: BookFile; onRemove: () => void 
 	}
 
 	return (
-		<GroupRow title={t("settings.recovery")} hint={question ? t("settings.recoveryOn", { q: question }) : t("settings.recoveryOff")}>
+		<GroupRow title={t("settings.recovery")} description={question ? t("settings.recoveryOn", { q: question }) : t("settings.recoveryOff")}>
 			<div className="pm-row">
 				{question && (
-					<Button variant="light" color="danger" onClick={onRemove}>
+					<Button variant="light" tone="danger" onClick={onRemove}>
 						{t("settings.recoveryRemove")}
 					</Button>
 				)}

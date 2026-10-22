@@ -400,10 +400,6 @@ button {
 		opacity: 1;
 	}
 	}
-.pm-cat .si-menu {
-	left: auto;
-	right: 0;
-}
 
 /* book switcher (top of the sidebar) */
 .pm-switcher {
@@ -412,10 +408,9 @@ button {
 .pm-switcher .si-menu-anchor {
 	display: block;
 }
-.pm-switcher .si-menu {
-	right: 0;
-	max-height: 70dvh;
-	overflow-y: auto;
+/* the menu floats on <body>: Menu matchWidth makes it the switcher's width */
+.pm-switcher-menu {
+	max-height: min(70dvh, var(--si-room));
 }
 .pm-switcher-button {
 	width: 100%;

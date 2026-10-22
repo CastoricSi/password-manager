@@ -1,13 +1,11 @@
 import { ArrowLeft, Check, ExternalLink, EyeOff, Plus, Trash2, WandSparkles, X } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 
-import { Button, CopyButton, IconButton, Input, PasswordField, SelectField, TextAreaField, TextField } from "sityle";
+import { Button, ConfirmDialog, CopyButton, IconButton, Input, PasswordField, SelectField, TextAreaField, TextField } from "sityle";
 
 import { usePrefs } from "@/app/prefs";
 import { newField, toHref, type Category, type CustomField, type Entry } from "@/lib/content";
 import { generatePassword } from "@/lib/password";
-import { ConfirmDialog } from "@/ui/ConfirmDialog";
-import { usePasswordLabels } from "@/ui/fields";
 import { EntryAvatar } from "@/ui/Logo";
 import { useMediaQuery } from "@/ui/useMediaQuery";
 import { AddAttachmentButton, AttachmentList } from "./Attachments";
@@ -56,7 +54,6 @@ export function EntryEditor({
 	onDirtyChange: (dirty: boolean) => void;
 }) {
 	const { t, lang } = usePrefs();
-	const passwordLabels = usePasswordLabels();
 	const phone = useMediaQuery("(max-width: 767px)");
 	const listId = useId();
 	const [base, setBase] = useState(initial);
@@ -201,7 +198,6 @@ export function EntryEditor({
 									key={pwKey}
 									label={t("field.password")}
 									defaultVisible={pwKey > 0}
-									labels={passwordLabels}
 									value={draft.password}
 									onChange={(e) => set("password", e.target.value)}
 									extra={
@@ -250,7 +246,6 @@ export function EntryEditor({
 												{f.secret ? (
 													<PasswordField
 														label={f.label || t("fields.value")}
-														labels={passwordLabels}
 														value={f.value}
 														onChange={(e) => setField(f.id, { value: e.target.value })}
 													/>
@@ -325,7 +320,7 @@ export function EntryEditor({
 			<footer className="pm-editor-foot">
 				<div className="pm-editor-foot-inner">
 					{!isNew && (
-						<Button variant="light" color="danger" icon={<Trash2 />} onClick={() => setConfirmDelete(true)} aria-label={t("common.delete")} className="pm-foot-btn pm-icon-on-phone">
+						<Button variant="light" tone="danger" icon={<Trash2 />} onClick={() => setConfirmDelete(true)} aria-label={t("common.delete")} className="pm-foot-btn pm-icon-on-phone">
 							<span>{t("common.delete")}</span>
 						</Button>
 					)}

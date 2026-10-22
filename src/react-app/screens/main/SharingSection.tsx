@@ -1,13 +1,12 @@
 import { UserPlus, Users, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Avatar, Button, Group, GroupRow, IconBadge, IconButton, InkDrop, Tag, TextField } from "sityle";
+import { Avatar, Button, ConfirmDialog, Group, GroupRow, IconBadge, IconButton, InkDrop, Tag, TextField } from "sityle";
 
 import { useLibrary, useSync } from "@/app/context";
 import { usePrefs } from "@/app/prefs";
 import type { ShareResult } from "@/app/syncController";
 import { hasPassword, type BookFile } from "@/lib/bookfile";
 import type { Person } from "@/lib/drive";
-import { ConfirmDialog } from "@/ui/ConfirmDialog";
 import { useLast } from "@/ui/useLast";
 
 /**
@@ -23,7 +22,7 @@ export function SharingSection({ book, onGoToAccount }: { book: BookFile; onGoTo
 	if (!sync.connected) {
 		return (
 			<Group plain title={t("share.title")}>
-				<GroupRow title={t("share.needGoogle")} hint={t("share.needGoogleHint")}>
+				<GroupRow title={t("share.needGoogle")} description={t("share.needGoogleHint")}>
 					<Button variant="bordered" onClick={onGoToAccount}>
 						{t("share.goToAccount")}
 					</Button>
@@ -111,12 +110,12 @@ function OwnerSharing({ book }: { book: BookFile }) {
 							<ul className="pm-stack is-tight" style={{ margin: 0, padding: 0, listStyle: "none" }}>
 								{others.map((p) => (
 									<li key={p.permissionId} className="pm-row is-nowrap">
-										<Avatar name={p.name || p.email} size={32} color="azure" />
+										<Avatar name={p.name || p.email} size={32} tone="azure" decorative />
 										<span className="pm-two-line">
 											<span>{p.name || p.email}</span>
 											{p.name && <small>{p.email}</small>}
 										</span>
-										<Tag color="jade">{t("share.canEdit")}</Tag>
+										<Tag tone="jade">{t("share.canEdit")}</Tag>
 										<IconButton label={`${t("share.remove")} ${p.email}`} onClick={() => setRemoving(p)}>
 											<X />
 										</IconButton>

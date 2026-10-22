@@ -6,7 +6,7 @@ import { useLibrary } from "@/app/context";
 import { useT } from "@/app/prefs";
 import { passwordHint, slotsOf, type BookFile } from "@/lib/bookfile";
 import { recoveryHint, recoveryQuestion } from "@/lib/crypto";
-import { capsLock, usePasswordLabels } from "@/ui/fields";
+import { capsLock } from "@/ui/fields";
 
 /**
  * Main password (with an optional "show hint"), or — after "Forgot?" — the
@@ -14,7 +14,6 @@ import { capsLock, usePasswordLabels } from "@/ui/fields";
  */
 export function UnlockForm({ book, onUnlocked }: { book: BookFile; onUnlocked: (viaRecovery: boolean) => void }) {
 	const t = useT();
-	const labels = usePasswordLabels();
 	const [, library] = useLibrary();
 	const [mode, setMode] = useState<"password" | "forgot">("password");
 	const [secret, setSecret] = useState("");
@@ -46,7 +45,7 @@ export function UnlockForm({ book, onUnlocked }: { book: BookFile; onUnlocked: (
 	};
 
 	const hintNote = (text: string) => (
-		<Note tone="warn" icon={<Lightbulb />}>
+		<Note tone="gold" icon={<Lightbulb />}>
 			{text}
 		</Note>
 	);
@@ -60,7 +59,6 @@ export function UnlockForm({ book, onUnlocked }: { book: BookFile; onUnlocked: (
 							label={t("unlock.prompt")}
 							autoFocus
 							copy={false}
-							labels={labels}
 							value={secret}
 							error={wrong ? t("unlock.wrong") : undefined}
 							hint={caps ? t("unlock.capsLock") : undefined}

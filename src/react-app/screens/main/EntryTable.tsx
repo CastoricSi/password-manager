@@ -3,7 +3,7 @@ import { useState } from "react";
 
 import { useT } from "@/app/prefs";
 import { toHref, type Category, type Entry } from "@/lib/content";
-import { cn } from "sityle";
+import { cn } from "@/ui/cn";
 
 import { CopyIcon } from "@/ui/CopyIcon";
 import { EntryAvatar } from "@/ui/Logo";

@@ -19,9 +19,12 @@ export function Logo({ size = 32 }: { size?: number }) {
 
 const PIGMENTS = ["jade", "azure", "gold"] as const;
 
-/** sityle's letter tile ("微" for 微信); the pigment follows the name, so it stays the same. */
+/**
+ * sityle's letter tile ("微" for 微信); the pigment follows the name, so it stays
+ * the same. Decorative: the name is always written right next to it.
+ */
 export function EntryAvatar({ name, size = 40 }: { name: string; size?: number }) {
 	let h = 0;
 	for (const ch of name) h = (h * 31 + ch.codePointAt(0)!) >>> 0;
-	return <Avatar name={name} size={size} color={PIGMENTS[h % PIGMENTS.length]} />;
+	return <Avatar name={name} size={size} tone={PIGMENTS[h % PIGMENTS.length]} decorative />;
 }

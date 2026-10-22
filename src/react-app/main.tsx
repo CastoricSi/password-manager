@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
 import "sityle/style.css";
+import "sityle/base.css";
 import "./layout.css";
 import App from "./App";
 import { AppProvider } from "@/app/AppProvider";

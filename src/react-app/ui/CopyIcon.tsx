@@ -2,7 +2,7 @@ import { Check, Copy } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { useT } from "@/app/prefs";
-import { cn } from "sityle";
+import { cn } from "@/ui/cn";
 
 /**
  * Icon-only copy button for dense places (table cells). Shows a check when

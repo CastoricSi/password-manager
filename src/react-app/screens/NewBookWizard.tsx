@@ -181,7 +181,7 @@ export function NewBookWizard({ defaultName, onDone, onCancel, inDialog }: { def
 							setHintError(false);
 						}}
 					/>
-					<Note tone="warn">{t("setup.remember")}</Note>
+					<Note tone="gold">{t("setup.remember")}</Note>
 					<div className="pm-row pm-wizard-actions">
 						{back(1)}
 						<Button type="submit" className="pm-grow">

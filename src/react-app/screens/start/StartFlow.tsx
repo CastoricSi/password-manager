@@ -1,7 +1,8 @@
 import { ArrowLeft, BookOpen, Cloud, HardDrive, Lock, Plus, UserPlus, Users } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
-import { Button, cn, IconBadge, InkDrop, ListItem } from "sityle";
+import { Button, IconBadge, InkDrop, ListItem } from "sityle";
+import { cn } from "@/ui/cn";
 
 import { useLibrary, useSync } from "@/app/context";
 import { useT } from "@/app/prefs";
@@ -177,7 +178,7 @@ function ModeStep({ onChosen }: { onChosen: () => void }) {
 							</IconBadge>
 						}
 						title={t("start.local")}
-						subtitle={t("start.localHint")}
+						description={t("start.localHint")}
 						onClick={() => {
 							sync.useLocal();
 							onChosen();
@@ -186,7 +187,7 @@ function ModeStep({ onChosen }: { onChosen: () => void }) {
 					<ListItem
 						leading={<IconBadge>{connecting ? <InkDrop /> : <Cloud />}</IconBadge>}
 						title={t("start.google")}
-						subtitle={unavailable ? t("sync.unavailable") : t("start.googleHint")}
+						description={unavailable ? t("sync.unavailable") : t("start.googleHint")}
 						onClick={
 							connecting || unavailable
 								? undefined
@@ -261,7 +262,7 @@ function BooksStep({ waiting, onOpen, onNew, onSwitchMode }: { waiting: boolean;
 								current={b.id === currentId}
 								leading={<IconBadge>{hasPassword(b) ? <Lock /> : <BookOpen />}</IconBadge>}
 								title={b.name}
-								subtitle={status(b)}
+								description={status(b)}
 								onClick={() => onOpen(b)}
 							/>
 						))}

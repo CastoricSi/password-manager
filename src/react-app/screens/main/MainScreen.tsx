@@ -7,9 +7,9 @@ import { goBack, navigate, setNavBlocker, type Route } from "@/app/nav";
 import { hasPassword, type BookFile } from "@/lib/bookfile";
 import { deleteCategory, ensureCategory, fieldLabels, findEntries, liveCategories, newEntry, renameCategory, type Entry } from "@/lib/content";
 import { AnimatePresence, motion } from "motion/react";
-import { Button, cn, Dialog, Fab, IconButton } from "sityle";
+import { Button, ConfirmDialog, Dialog, Fab, IconButton } from "sityle";
+import { cn } from "@/ui/cn";
 
-import { ConfirmDialog } from "@/ui/ConfirmDialog";
 import { Logo } from "@/ui/Logo";
 import { useLast } from "@/ui/useLast";
 import { useMediaQuery } from "@/ui/useMediaQuery";
