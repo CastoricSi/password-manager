@@ -16,6 +16,8 @@ export const zh = {
 	"common.copied": "已复制",
 	"common.show": "显示",
 	"common.hide": "隐藏",
+	"common.clear": "清除",
+	"common.loading": "加载中",
 	"common.working": "请稍候…",
 	"time.justNow": "刚刚",
 
@@ -355,6 +357,8 @@ export const en: Record<MessageKey, string> = {
 	"common.copied": "Copied",
 	"common.show": "Show",
 	"common.hide": "Hide",
+	"common.clear": "Clear",
+	"common.loading": "Loading",
 	"common.working": "Please wait…",
 	"time.justNow": "just now",
 

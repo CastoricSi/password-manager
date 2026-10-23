@@ -63,13 +63,14 @@ sharing.
   rice-paper body, paper fibre) then `layout.css`. `app/Theme.tsx` passes the
   app's theme to `<SiProvider theme>` (sityle owns `<html data-theme>`) and the
   app's words for sityle's own texts to `<SiProvider messages>` (copy, show /
-  hide, cancel, password strength) — so components need no label props for them.
+  hide, clear, cancel, loading, password strength) — so components need no label props for them.
 - Use sityle components first: Button, IconButton, CopyButton, TextField /
   PasswordField / SelectField / TextAreaField (floating labels), Input,
   SearchField, Switch, Segmented, Tabs, Menu, Dialog / ConfirmDialog
   (`seal="删"` on deletes), Card, Group / GroupRow (settings), NavItem
   (sidebar), ListItem, Avatar, Tag, Note, IconBadge, Steps, RadioCard, InkDrop,
-  AutoHeight (the start card). SelectField takes `options`, never native
+  AutoHeight (the start card), Typography. Text styles in `layout.css` use the type
+  tokens (`font: var(--si-type-h3)`). SelectField takes `options`, never native
   <select>. sityle's names: colour is `tone`, an item's second line is
   `description` (`hint` only under form fields). Menus and select lists float on
   <body>: place them with Menu's `align` / `matchWidth` / `className`, not with
@@ -91,6 +92,9 @@ sharing.
   node_modules).
 - Dialogs on phones: bottom sheet by default; `phone="full"` for settings and
   the new-book wizard.
+- Layers over the page (the ☰ drawer) are absolute layers in the page, not fixed
+  ones, with the page held still while they are open: Safari on iPhone clips fixed
+  layers to the viewport and shows the page under its toolbar.
 
 ## URLs (app/nav.ts)
 
