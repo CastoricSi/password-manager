@@ -5,14 +5,21 @@ import app from "./index";
 const env = { GOOGLE_CLIENT_ID: "client-id", GOOGLE_CLIENT_SECRET: "client-secret", SESSION_SECRET: "a-long-random-test-secret" };
 const BASE = "https://pm.example.com";
 
-/** Collects Set-Cookie headers into a Cookie header value. */
+/** Collects Set-Cookie headers into a Cookie header value. Like a browser, a cookie is
+ *  name + path: deleting pm_google on one path leaves the one on another. */
+const paths = new WeakMap<Record<string, string>, Record<string, string>>();
 function cookiesFrom(res: Response, jar: Record<string, string> = {}) {
+	const at = paths.get(jar) ?? {};
+	paths.set(jar, at);
 	for (const line of res.headers.getSetCookie()) {
-		const [pair] = line.split(";");
+		const [pair, ...attrs] = line.split(";");
 		const [name, ...rest] = pair.split("=");
 		const value = rest.join("=");
-		if (value) jar[name] = value;
-		else delete jar[name];
+		const path = attrs.map((a) => a.trim()).find((a) => /^path=/i.test(a))?.slice(5) ?? "/";
+		if (value) {
+			jar[name] = value;
+			at[name] = path;
+		} else if (at[name] === path) delete jar[name];
 	}
 	return jar;
 }
@@ -56,6 +63,8 @@ describe("Google sign-in for sync (Worker)", () => {
 		const setCookie = cb.headers.getSetCookie().find((c) => c.startsWith("pm_google="))!;
 		expect(setCookie).toMatch(/HttpOnly/i);
 		expect(setCookie).toMatch(/Secure/i);
+		// every API route that needs the session gets it (a cookie on /api/auth never reached the config)
+		expect(setCookie).toMatch(/Path=\/api(;|$)/);
 
 		// 3. Config shows the connected account.
 		const cfg = await app.request(`${BASE}/api/sync/config`, { headers: { Cookie: cookieHeader(jar) } }, env);
@@ -74,6 +83,23 @@ describe("Google sign-in for sync (Worker)", () => {
 		expect(String(fetchMock.mock.calls.at(-1)?.[0])).toContain("/revoke");
 		cookiesFrom(out, jar);
 		expect(jar.pm_google).toBeUndefined();
+	});
+
+	it("a session left at the old cookie path (/api/auth) is still seen, and moved to /api", async () => {
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => Response.json({ refresh_token: "refresh-old", id_token: idToken("li@example.com"), scope: "openid email https://www.googleapis.com/auth/drive.file" })),
+		);
+		const start = await app.request(`${BASE}/api/auth/google/start`, {}, env);
+		const jar = cookiesFrom(start);
+		const cb = await app.request(`${BASE}/api/auth/google/callback?code=abc&state=${jar.pm_google_state}`, { headers: { Cookie: cookieHeader(jar) } }, env);
+		const sealed = cookiesFrom(cb, {}).pm_google!;
+		// the browser sends an /api/auth cookie only to /api/auth/*: the app's config check is there
+		const cfg = await app.request(`${BASE}/api/auth/config`, { headers: { Cookie: `pm_google=${sealed}` } }, env);
+		expect(await cfg.json()).toMatchObject({ connected: true, email: "li@example.com" });
+		const set = cfg.headers.getSetCookie().filter((c) => c.startsWith("pm_google="));
+		expect(set.some((c) => /Path=\/api(;|$)/.test(c) && !c.startsWith("pm_google=;"))).toBe(true);
+		expect(set.some((c) => /Path=\/api\/auth/.test(c) && /Max-Age=0|Expires=Thu, 01 Jan 1970/i.test(c))).toBe(true);
 	});
 
 	it("rejects a callback whose state doesn't match", async () => {

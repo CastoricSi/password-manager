@@ -121,8 +121,11 @@ Google needs `.dev.vars` (see `.dev.vars.example` and README).
 src/worker/        Hono.
   googleAuth.ts      OAuth code flow, scope drive.file (+ openid email);
                      refresh token AES-GCM-encrypted (SESSION_SECRET) in an
-                     HttpOnly cookie on /api/auth; /api/auth/google/token gives
-                     short-lived access tokens. /api/sync/config also returns
+                     HttpOnly cookie on /api (not /api/auth: the config and
+                     /api/shares read it too; a cookie left there by older
+                     builds moves on the next /api/auth/* request);
+                     /api/auth/google/token gives short-lived access tokens.
+                     /api/auth/config (alias /api/sync/config) also returns
                      picker {apiKey, appId} and whether notices (KV) exist.
   shares.ts          KV `SHARES` inbox per recipient email: POST (owner, checked
                      via Drive capabilities.canShare), GET, DELETE.

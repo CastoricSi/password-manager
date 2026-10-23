@@ -8,6 +8,8 @@ import * as shares from "./shares";
 // book contents never pass through it.
 const app = new Hono<{ Bindings: Env & google.AuthEnv }>();
 
+// /api/auth/config also receives a session cookie left at the old /api/auth path (and moves it)
+app.get("/api/auth/config", google.config);
 app.get("/api/sync/config", google.config);
 app.get("/api/auth/google/start", google.start);
 app.get("/api/auth/google/callback", google.callback);

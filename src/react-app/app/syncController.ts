@@ -105,7 +105,8 @@ export class SyncController {
 		window.setInterval(() => document.visibilityState === "visible" && void this.syncNow(), INTERVAL);
 
 		try {
-			const res = await fetch("/api/sync/config");
+			// under /api/auth: a sign-in stored by an earlier build (cookie path /api/auth) is seen there too
+			const res = await fetch("/api/auth/config", { cache: "no-store" });
 			const cfg = (await res.json()) as {
 				available: boolean;
 				connected?: boolean;

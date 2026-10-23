@@ -3,9 +3,16 @@
 // Authorization-code flow with offline access, done by the Worker because it
 // needs the client secret. The long-lived refresh token never reaches page
 // JavaScript: it lives AES-GCM-encrypted (with SESSION_SECRET) in an HttpOnly,
-// Secure, SameSite=Lax cookie scoped to /api/auth. The page only ever gets
+// Secure, SameSite=Lax cookie scoped to /api. The page only ever gets
 // short-lived access tokens limited to files this app created or the user
 // picked (scope drive.file).
+//
+// The session cookie's path is /api: the sync config (/api/sync/config,
+// /api/auth/config) and the share notices (/api/shares) read it too. Earlier
+// builds scoped it to /api/auth, so the config never saw it and every reload
+// looked signed out. Requests under /api/auth (the app's config check, tokens)
+// store the session again at /api: that moves an old cookie, and renews the
+// 400 days for anyone who keeps using the app.
 
 import type { Context } from "hono";
 import { getCookie, setCookie, deleteCookie } from "hono/cookie";
@@ -27,7 +34,12 @@ type Ctx = Context<{ Bindings: AuthEnv }>;
 const SCOPE = "openid email https://www.googleapis.com/auth/drive.file";
 const SESSION_COOKIE = "pm_google";
 const STATE_COOKIE = "pm_google_state";
+/** The sign-in round trip (state cookie). */
 const COOKIE_PATH = "/api/auth";
+/** The session: every API route that needs to know who is signed in. */
+const SESSION_PATH = "/api";
+/** Where earlier builds put the session (too narrow: /api/sync/config never saw it). */
+const LEGACY_SESSION_PATH = "/api/auth";
 const SESSION_MAX_AGE = 400 * 24 * 3600; // browsers cap cookies at ~400 days
 
 export const isConfigured = (env: AuthEnv) => !!(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET && env.SESSION_SECRET);
@@ -65,6 +77,28 @@ export async function openSession(secret: string, value: string | undefined): Pr
 	}
 }
 
+/** Stores the session for every /api route (and drops one left at the old, narrower path). */
+async function keepSession(c: Ctx, session: Session) {
+	setCookie(c, SESSION_COOKIE, await sealSession(c.env.SESSION_SECRET!, session), {
+		path: SESSION_PATH,
+		httpOnly: true,
+		secure: secure(c),
+		sameSite: "Lax",
+		maxAge: SESSION_MAX_AGE,
+	});
+	deleteCookie(c, SESSION_COOKIE, { path: LEGACY_SESSION_PATH });
+}
+
+function dropSession(c: Ctx) {
+	deleteCookie(c, SESSION_COOKIE, { path: SESSION_PATH });
+	deleteCookie(c, SESSION_COOKIE, { path: LEGACY_SESSION_PATH });
+}
+
+/** Under /api/auth (which also receives a cookie at the old path): store the session at /api again. */
+async function moveLegacySession(c: Ctx, session: Session | null) {
+	if (session && new URL(c.req.url).pathname.startsWith(`${LEGACY_SESSION_PATH}/`)) await keepSession(c, session);
+}
+
 // ── Pages returned to the sign-in popup ──────────────────────────────────────
 
 function popupResult(c: Ctx, ok: boolean) {
@@ -83,6 +117,8 @@ setTimeout(function () { location.replace("/"); }, 300);
 export async function config(c: Ctx) {
 	if (!isConfigured(c.env)) return c.json({ available: false });
 	const session = await openSession(c.env.SESSION_SECRET!, getCookie(c, SESSION_COOKIE));
+	await moveLegacySession(c, session);
+	c.header("Cache-Control", "no-store");
 	const picker = c.env.GOOGLE_API_KEY && c.env.GOOGLE_APP_ID ? { apiKey: c.env.GOOGLE_API_KEY, appId: c.env.GOOGLE_APP_ID } : null;
 	return c.json({ available: true, connected: !!session, email: session?.email ?? null, picker, notices: !!c.env.SHARES });
 }
@@ -156,13 +192,7 @@ export async function callback(c: Ctx) {
 		// Email is only for display.
 	}
 
-	setCookie(c, SESSION_COOKIE, await sealSession(c.env.SESSION_SECRET!, { rt: tokens.refresh_token, email }), {
-		path: COOKIE_PATH,
-		httpOnly: true,
-		secure: secure(c),
-		sameSite: "Lax",
-		maxAge: SESSION_MAX_AGE,
-	});
+	await keepSession(c, { rt: tokens.refresh_token, email });
 	return popupResult(c, true);
 }
 
@@ -185,11 +215,12 @@ export async function token(c: Ctx) {
 	});
 	if (res.status === 400 || res.status === 401) {
 		// Revoked or expired: the user has to connect again.
-		deleteCookie(c, SESSION_COOKIE, { path: COOKIE_PATH });
+		dropSession(c);
 		return c.json({ error: "not_connected" }, 401);
 	}
 	if (!res.ok) return c.json({ error: "google_unavailable" }, 502);
 	const data = (await res.json()) as { access_token: string; expires_in: number };
+	await moveLegacySession(c, session);
 	c.header("Cache-Control", "no-store");
 	return c.json({ accessToken: data.access_token, expiresIn: data.expires_in, email: session.email });
 }
@@ -202,6 +233,6 @@ export async function disconnect(c: Ctx) {
 			await fetch(`https://oauth2.googleapis.com/revoke?token=${encodeURIComponent(session.rt)}`, { method: "POST" }).catch(() => {});
 		}
 	}
-	deleteCookie(c, SESSION_COOKIE, { path: COOKIE_PATH });
+	dropSession(c);
 	return c.json({ ok: true });
 }
