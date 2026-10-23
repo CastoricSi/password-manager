@@ -265,6 +265,29 @@ button {
 .pm-wizard-actions {
 	margin-top: auto;
 }
+/* picker: a book row and its delete / leave button */
+.pm-book-row {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+.pm-book-row > .si-listitem {
+	flex: 1;
+	min-width: 0;
+}
+/* no books yet */
+.pm-books-empty {
+	display: grid;
+	justify-items: center;
+	gap: 8px;
+	padding: 28px 12px;
+	text-align: center;
+	color: var(--si-ink-2);
+}
+.pm-books-empty .pm-label {
+	font: var(--si-type-h4);
+	color: var(--si-ink);
+}
 /* full-width actions, one above the other (the book picker) */
 .pm-actions-stack {
 	display: grid;

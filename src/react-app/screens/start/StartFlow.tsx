@@ -1,7 +1,7 @@
-import { ArrowLeft, BookOpen, Cloud, HardDrive, Lock, Plus, UserPlus, Users } from "lucide-react";
+import { ArrowLeft, BookOpen, Cloud, HardDrive, Lock, LogOut, Plus, Trash2, UserPlus, Users } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
-import { Button, IconBadge, InkDrop, ListItem } from "sityle";
+import { Button, ConfirmDialog, IconBadge, IconButton, InkDrop, ListItem } from "sityle";
 import { cn } from "@/ui/cn";
 
 import { useLibrary, useSync } from "@/app/context";
@@ -20,8 +20,9 @@ type Step = { kind: "mode" } | { kind: "books" } | { kind: "new" } | { kind: "un
 
 /**
  * Before the main screen, step by step:
- *   1. where to keep books: this device, or a Google account (first time only)
- *   2. which book (or straight to "new book" when there are none)
+ *   1. where to keep books: this device, or a Google account (until chosen once)
+ *   2. which book — with none yet, an empty picker: create one, or (with Google)
+ *      add one someone shared; nobody is pushed into making a book of their own
  *   3. its main password, if it has one
  */
 export function StartFlow({
@@ -39,12 +40,11 @@ export function StartFlow({
 	onUnlocked: (bookId: string, viaRecovery: boolean) => void;
 	onRecoveredDone: (bookId: string) => void;
 }) {
-	const [syncState, sync] = useSync();
+	const [syncState] = useSync();
 	const [{ books }, library] = useLibrary();
 	const waitingForCloud = syncState.mode === "google" && !syncState.firstSyncDone && books.length === 0;
-	// No books here yet (and not waiting for Google's): "local or Google" comes
-	// first, every time — a newcomer never lands in the wizard unasked.
-	const fresh = books.length === 0 && !waitingForCloud && syncState.mode !== "google";
+	// Never chosen where books live: that comes first.
+	const fresh = books.length === 0 && !waitingForCloud && syncState.mode === null;
 
 	// The step follows the URL.
 	const step: Step = recovering
@@ -53,7 +53,7 @@ export function StartFlow({
 			? { kind: "unlock", id: unlockBook.id }
 			: route.start === "mode" || (fresh && !route.start)
 				? { kind: "mode" }
-				: route.start === "new" || (books.length === 0 && !waitingForCloud)
+				: route.start === "new"
 					? { kind: "new" }
 					: { kind: "books" };
 
@@ -66,11 +66,9 @@ export function StartFlow({
 	}
 
 	const open = (b: BookFile) => navigate({ book: b.id });
-	// Chosen: with no books, local goes on to the wizard (Back returns here);
-	// Google waits for the cloud's books on the picker.
+	// Chosen: on to the picker (Google's books arrive there; with none, it offers new / shared).
 	const fromMode = () => {
-		if (books.length === 0 && sync.getSnapshot().mode === "local") navigate({ start: "new" }, { replace: route.start === "mode" });
-		else if (route.start === "mode") goBack({});
+		if (route.start === "mode") goBack({});
 		else navigate({}, { replace: true });
 	};
 
@@ -214,6 +212,7 @@ function BooksStep({ waiting, onOpen, onNew, onSwitchMode }: { waiting: boolean;
 	const [syncState, sync] = useSync();
 	const ordered = [...books].sort((a, b) => (a.id === currentId ? -1 : b.id === currentId ? 1 : 0));
 	const google = syncState.mode === "google" && sync.connected;
+	const [removing, setRemoving] = useState<Removing>(null);
 
 	const status = (b: BookFile) => {
 		const base = hasPassword(b) ? (opened[b.id] ? t("book.statusUnlocked") : t("start.needsPassword")) : t("book.statusOpen");
@@ -254,18 +253,33 @@ function BooksStep({ waiting, onOpen, onNew, onSwitchMode }: { waiting: boolean;
 						<InkDrop />
 						<span style={{ color: "var(--si-ink-2)" }}>{t("start.loadingCloud")}</span>
 					</p>
+				) : ordered.length === 0 ? (
+					<div className="pm-books-empty">
+						<IconBadge>
+							<BookOpen />
+						</IconBadge>
+						<p className="pm-label">{t("start.noBooks")}</p>
+						<p className="pm-muted">{google ? t("start.noBooksHintGoogle") : t("start.noBooksHint")}</p>
+					</div>
 				) : (
 					<div className="pm-list pm-books-list">
-						{ordered.map((b) => (
-							<ListItem
-								key={b.id}
-								current={b.id === currentId}
-								leading={<IconBadge>{hasPassword(b) ? <Lock /> : <BookOpen />}</IconBadge>}
-								title={b.name}
-								description={status(b)}
-								onClick={() => onOpen(b)}
-							/>
-						))}
+						{ordered.map((b) => {
+							const shared = records[b.id]?.ownedByMe === false;
+							return (
+								<div key={b.id} className="pm-book-row">
+									<ListItem
+										current={b.id === currentId}
+										leading={<IconBadge>{hasPassword(b) ? <Lock /> : <BookOpen />}</IconBadge>}
+										title={b.name}
+										description={status(b)}
+										onClick={() => onOpen(b)}
+									/>
+									<IconButton label={shared ? t("share.leave") : t("book.delete")} onClick={() => setRemoving({ book: b, step: 1 })}>
+										{shared ? <LogOut /> : <Trash2 />}
+									</IconButton>
+								</div>
+							);
+						})}
 					</div>
 				)}
 
@@ -279,8 +293,72 @@ function BooksStep({ waiting, onOpen, onNew, onSwitchMode }: { waiting: boolean;
 							{t("share.addShared")}
 						</Button>
 					)}
+					{/* shared books come through Google: without it, the way there */}
+					{!google && syncState.status !== "unavailable" && (
+						<Button variant="ghost" icon={<UserPlus />} onClick={onSwitchMode} className="pm-block">
+							{t("start.useShared")}
+						</Button>
+					)}
 				</div>
 			</div>
+			<RemoveBook removing={removing} onStep={setRemoving} />
+		</>
+	);
+}
+
+type Removing = { book: BookFile; step: 1 | 2 } | null;
+
+/**
+ * Deleting from the picker asks twice: what will happen, then a last word (a
+ * book only on this device is gone for good; a synced one can come back within
+ * 30 days). Leaving a book someone shared asks once: the owner keeps it.
+ */
+function RemoveBook({ removing, onStep }: { removing: Removing; onStep: (r: Removing) => void }) {
+	const t = useT();
+	const [{ records }, library] = useLibrary();
+	const [, sync] = useSync();
+	// the book stays on screen while a dialog plays its closing animation
+	const [last, setLast] = useState(removing);
+	if (removing && removing !== last) setLast(removing);
+	const b = (removing ?? last)?.book;
+	const shared = b ? records[b.id]?.ownedByMe === false : false;
+	const synced = sync.connected;
+	const step = removing?.step ?? 0;
+	const close = () => onStep(null);
+	return (
+		<>
+			<ConfirmDialog
+				open={step === 1 && shared}
+				title={t("share.leaveTitle", { name: b?.name ?? "" })}
+				body={t("share.leaveHint")}
+				confirmLabel={t("share.leave")}
+				onCancel={close}
+				onConfirm={() => {
+					close();
+					if (b) void sync.leave(b.id);
+				}}
+			/>
+			<ConfirmDialog
+				open={step === 1 && !shared}
+				seal="删"
+				title={t("book.deleteTitle", { name: b?.name ?? "" })}
+				body={synced ? t("book.deleteSyncedHint") : t("book.deleteHint")}
+				confirmLabel={t("book.deleteContinue")}
+				onCancel={close}
+				onConfirm={() => b && onStep({ book: b, step: 2 })}
+			/>
+			<ConfirmDialog
+				open={step === 2}
+				seal="删"
+				title={t("book.deleteFinalTitle", { name: b?.name ?? "" })}
+				body={synced ? t("book.deleteFinalSynced") : t("book.deleteFinalLocal")}
+				confirmLabel={t("book.deleteFinal")}
+				onCancel={close}
+				onConfirm={() => {
+					close();
+					if (b) void library.deleteBook(b.id);
+				}}
+			/>
 		</>
 	);
 }

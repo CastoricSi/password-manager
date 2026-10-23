@@ -37,10 +37,13 @@ sharing.
   sityle x.y.z" (hover: build time) — `__PM_BUILD__`, set in `vite.config.ts`
   (commit from Cloudflare's `WORKERS_CI_COMMIT_SHA`, else git; "+" = built with
   uncommitted changes).
-- **Start** (`screens/start/StartFlow`): first time "use local data" / "use a
-  Google account" (remembered) → book picker (last used first; share notices;
-  no books → straight to the wizard) → unlock (hint, recovery question with
-  answer hint → forced new password) → main.
+- **Start** (`screens/start/StartFlow`): until chosen once, "use local data" /
+  "use a Google account" (remembered) → book picker (last used first; share
+  notices; a delete / leave button per row — deleting asks twice; with no books
+  an empty state, never a forced wizard: new book, or with Google add a shared
+  one, without it a way to Google) → unlock (hint, recovery question with
+  answer hint → forced new password) → main. Deleting or leaving the open book
+  returns to the picker (no other book opens or becomes "last used").
 - **New book** (`NewBookWizard`): 1 name + protection (or import backup),
   2 password + confirm + optional hint, 3 optional recovery question + answer +
   optional answer hint. Open books finish after step 1.

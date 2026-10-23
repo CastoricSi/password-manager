@@ -349,11 +349,8 @@ export function MainScreen({ book, route, autoLocked }: { book: BookFile; route:
 				book={book}
 				opened={open}
 				onClose={closeOverlay}
-				onBookGone={() => {
-					// another book if there is one, else the picker
-					const next = library.getSnapshot().books.find((b) => b.id !== book.id);
-					navigate(next ? { book: next.id } : {}, { replace: true });
-				}}
+				// deleted or left: back to the picker (not into some other book)
+				onBookGone={() => navigate({}, { replace: true })}
 				onImported={(id) => switchBook(id, { replace: true })}
 			/>
 			<Dialog open={newBook && !closing} title={t("book.new")} onClose={closeOverlay} wide phone="full">

@@ -228,7 +228,8 @@ export class Library {
 			await storage.deleteBook(id);
 			this.emit();
 		}
-		if (localStorage.getItem(CURRENT_KEY) === id) this.select(this.snapshot.books[0]?.id ?? null);
+		// no other book becomes "last used" behind the user's back
+		if (localStorage.getItem(CURRENT_KEY) === id) this.select(null);
 	}
 
 	/** Adds a backup as a book (replacing the book with the same id, if any). */
