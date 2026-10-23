@@ -7,6 +7,7 @@ import { cn } from "@/ui/cn";
 
 import { CopyIcon } from "@/ui/CopyIcon";
 import { EntryAvatar } from "@/ui/Logo";
+import { PinnedName } from "./EntryList";
 
 const DOTS = "••••••••";
 
@@ -81,7 +82,7 @@ export function EntryTable({
 							<td>
 								<button type="button" className="pm-table-name" onClick={() => onSelect(e.id)}>
 									<EntryAvatar name={e.name} size={28} />
-									<span className="pm-truncate">{e.name}</span>
+									<span className="pm-truncate">{e.pinned ? <PinnedName name={e.name} /> : e.name}</span>
 								</button>
 							</td>
 							<td>

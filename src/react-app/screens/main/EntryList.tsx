@@ -1,4 +1,4 @@
-import { ShieldCheck, TriangleAlert } from "lucide-react";
+import { Pin, ShieldCheck, TriangleAlert } from "lucide-react";
 
 import { ListItem, SearchField } from "sityle";
 
@@ -33,6 +33,17 @@ export function ListFooter({ total, saveFailed }: { total: number; saveFailed: b
 	);
 }
 
+/** A pinned entry's name: a small pin before it. */
+export function PinnedName({ name }: { name: string }) {
+	const t = useT();
+	return (
+		<>
+			<Pin className="pm-pin" aria-label={t("entry.pinned")} role="img" />
+			{name}
+		</>
+	);
+}
+
 /** The list (sityle ListItems; details open on the right / next page). */
 export function EntryList({
 	entries,
@@ -57,7 +68,14 @@ export function EntryList({
 	return (
 		<div className="pm-stack" style={{ gap: 2 }}>
 			{entries.map((e) => (
-				<ListItem key={e.id} current={e.id === selectedId} leading={<EntryAvatar name={e.name} />} title={e.name} description={e.username || undefined} onClick={() => onSelect(e.id)} />
+				<ListItem
+					key={e.id}
+					current={e.id === selectedId}
+					leading={<EntryAvatar name={e.name} />}
+					title={e.pinned ? <PinnedName name={e.name} /> : e.name}
+					description={e.username || undefined}
+					onClick={() => onSelect(e.id)}
+				/>
 			))}
 		</div>
 	);

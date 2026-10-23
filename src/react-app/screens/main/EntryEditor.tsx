@@ -1,4 +1,4 @@
-import { ArrowLeft, Check, ExternalLink, EyeOff, Plus, Trash2, WandSparkles, X } from "lucide-react";
+import { ArrowLeft, Check, ExternalLink, EyeOff, Pin, Plus, Trash2, WandSparkles, X } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 
 import { Button, ConfirmDialog, CopyButton, IconButton, Input, PasswordField, SelectField, TextAreaField, TextField } from "sityle";
@@ -38,6 +38,8 @@ export function EntryEditor({
 	onDelete,
 	onBack,
 	onDirtyChange,
+	pinned,
+	onPin,
 }: {
 	initial: Entry;
 	isNew: boolean;
@@ -52,6 +54,10 @@ export function EntryEditor({
 	onDelete: () => void;
 	onBack: () => void;
 	onDirtyChange: (dirty: boolean) => void;
+	/** Pinned to the top of the list; pinning applies at once, apart from Save. */
+	pinned: boolean;
+	/** Not for a new entry (nothing saved to pin yet). */
+	onPin?: () => void;
 }) {
 	const { t, lang } = usePrefs();
 	const phone = useMediaQuery("(max-width: 767px)");
@@ -158,6 +164,11 @@ export function EntryEditor({
 								setNameMissing(false);
 							}}
 						/>
+						{onPin && (
+							<IconButton label={pinned ? t("entry.unpin") : t("entry.pin")} active={pinned} onClick={onPin}>
+								<Pin fill={pinned ? "currentColor" : "none"} />
+							</IconButton>
+						)}
 					</div>
 					{nameMissing && (
 						<p role="alert" className="pm-error" style={{ paddingLeft: 100, paddingBottom: 6 }}>

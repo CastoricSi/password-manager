@@ -167,6 +167,8 @@ export function MainScreen({ book, route, autoLocked }: { book: BookFile; route:
 				justSaved={saves > 0}
 				loadAttachment={loadAttachment}
 				onDirtyChange={onDirtyChange}
+				pinned={!!current?.pinned}
+				onPin={isNew || !current ? undefined : () => void library.pinEntry(book.id, current.id, !current.pinned)}
 				onSave={async ({ entry, newFiles, newCategory }) => {
 					await library.saveEntry(book.id, entry, newFiles, newCategory);
 					dirty.current = false;

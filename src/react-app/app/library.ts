@@ -24,7 +24,7 @@ import {
 	type Opened,
 } from "@/lib/bookfile";
 import type { BookContent, Entry } from "@/lib/content";
-import { ensureCategory, removeEntry, upsertEntry } from "@/lib/content";
+import { ensureCategory, pinEntry, removeEntry, upsertEntry } from "@/lib/content";
 import { WrongSecretError } from "@/lib/crypto";
 import * as storage from "@/lib/storage";
 import type { SyncRecord } from "@/lib/storage";
@@ -282,14 +282,21 @@ export class Library {
 		let next = file;
 		for (const [fileId, dataUrl] of Object.entries(newFiles)) next = await putAttachment(next, opened.key, fileId, dataUrl);
 		let base = opened.content;
-		let toSave = entry;
+		// pinning is its own action (pinEntry): an editor's draft never changes it
+		let toSave: Entry = { ...entry };
+		if (base.entries.find((e) => e.id === entry.id)?.pinned) toSave.pinned = true;
+		else delete toSave.pinned;
 		if (newCategory?.trim()) {
 			const made = ensureCategory(base, newCategory);
 			base = made.content;
-			toSave = { ...entry, categoryId: made.id };
+			toSave = { ...toSave, categoryId: made.id };
 		}
 		const content = upsertEntry(base, toSave);
 		await this.save(await writeContent(next, { key: opened.key, content }), { key: opened.key, content });
+	}
+
+	async pinEntry(id: string, entryId: string, pinned: boolean) {
+		await this.updateContent(id, (c) => pinEntry(c, entryId, pinned));
 	}
 
 	async deleteEntry(id: string, entryId: string) {

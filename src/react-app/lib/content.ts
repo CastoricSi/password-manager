@@ -14,6 +14,8 @@ export type Entry = {
 	categoryId: string | null;
 	fields: CustomField[];
 	attachments: AttachmentMeta[];
+	/** Shown first in the list. Absent = not pinned (so older books and backups read as they are). */
+	pinned?: true;
 	createdAt: string;
 	updatedAt: string;
 };
@@ -82,6 +84,20 @@ export function upsertEntry(c: BookContent, entry: Entry): BookContent {
 	return { ...c, entries: exists ? c.entries.map((e) => (e.id === entry.id ? next : e)) : [...c.entries, next] };
 }
 
+/** Pins or unpins an entry. It counts as an edit (updatedAt), so the change wins when devices merge. */
+export function pinEntry(c: BookContent, id: string, pinned: boolean): BookContent {
+	return {
+		...c,
+		entries: c.entries.map((e) => {
+			if (e.id !== id) return e;
+			const next: Entry = { ...e, updatedAt: now() };
+			if (pinned) next.pinned = true;
+			else delete next.pinned;
+			return next;
+		}),
+	};
+}
+
 export function removeEntry(c: BookContent, id: string): BookContent {
 	return {
 		...c,
@@ -143,7 +159,8 @@ export function findEntries(c: BookContent, query: string, categoryId: string | 
 			const text = [e.name, e.username, e.url, e.notes, ...e.fields.filter((f) => !f.secret).flatMap((f) => [f.label, f.value])];
 			return text.some((s) => s.toLocaleLowerCase().includes(q));
 		})
-		.sort((a, b) => collator.compare(a.name, b.name));
+		// pinned first, then by name
+		.sort((a, b) => Number(!!b.pinned) - Number(!!a.pinned) || collator.compare(a.name, b.name));
 }
 
 /** Turns "example.com" into an openable link; null for non-web text. */
@@ -175,7 +192,10 @@ export function mergeContent(a: BookContent, b: BookContent): BookContent {
 	const entries = new Map<string, Entry>();
 	for (const e of [...a.entries, ...b.entries]) {
 		const prev = entries.get(e.id);
-		if (!prev || e.updatedAt > prev.updatedAt || (e.updatedAt === prev.updatedAt && JSON.stringify(e) > JSON.stringify(prev))) {
+		// Same time, different content: an app from before pinning drops the flag when it
+		// saves (without touching updatedAt), so the copy that still has it wins.
+		const tie = e.updatedAt === prev?.updatedAt && (!!e.pinned !== !!prev.pinned ? !!e.pinned : JSON.stringify(e) > JSON.stringify(prev));
+		if (!prev || e.updatedAt > prev.updatedAt || tie) {
 			entries.set(e.id, e);
 		}
 	}
@@ -232,6 +252,7 @@ export function parseContent(value: unknown): BookContent {
 					.map(obj)
 					.filter((a) => typeof a.id === "string")
 					.map((a) => ({ id: str(a.id), name: str(a.name, "file"), type: str(a.type, "application/octet-stream"), size: Number(a.size) || 0 })),
+				...(e.pinned === true ? { pinned: true as const } : {}),
 				createdAt: str(e.createdAt, t),
 				updatedAt: str(e.updatedAt, t),
 			})),

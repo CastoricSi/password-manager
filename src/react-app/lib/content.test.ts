@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
 	deleteCategory,
@@ -8,6 +8,7 @@ import {
 	mergeContent,
 	newEntry,
 	parseContent,
+	pinEntry,
 	removeEntry,
 	toHref,
 	upsertEntry,
@@ -120,5 +121,49 @@ describe("passwords", () => {
 		}
 		expect(passwordStrength("1234567")).toBe("weak");
 		expect(passwordStrength("Garden-2024-x")).toBe("strong");
+	});
+});
+
+describe("pinning", () => {
+	it("an older book (no flag) reads as it is: nothing pinned, nothing added", () => {
+		const old = { ...emptyContent(), entries: [entry("银行")] };
+		const read = parseContent(JSON.parse(JSON.stringify(old)));
+		expect(read.entries[0]).not.toHaveProperty("pinned");
+		expect(read).toEqual(old);
+	});
+
+	it("keeps the flag only when it is true", () => {
+		const read = parseContent({ entries: [{ ...entry("a"), pinned: true }, { ...entry("b"), pinned: "yes" }] });
+		expect(read.entries.map((e) => e.pinned)).toEqual([true, undefined]);
+	});
+
+	it("pinned entries come first, each part by name", () => {
+		const c = { ...emptyContent(), entries: [entry("丙"), entry("乙", { pinned: true }), entry("甲"), entry("丁", { pinned: true })] };
+		expect(findEntries(c, "", null, "zh").map((e) => e.name)).toEqual(["丁", "乙", "丙", "甲"]);
+	});
+
+	it("pinning is an edit: it wins over the other device's older copy", () => {
+		const e = entry("邮箱", { updatedAt: "2020-01-01T00:00:00.000Z" });
+		const base = { ...emptyContent(), entries: [e] };
+		const pinned = pinEntry(base, e.id, true);
+		expect(pinned.entries[0]!.pinned).toBe(true);
+		expect(pinned.entries[0]!.updatedAt > e.updatedAt).toBe(true);
+		expect(mergeContent(base, pinned).entries[0]!.pinned).toBe(true);
+		expect(mergeContent(pinned, base).entries[0]!.pinned).toBe(true);
+		vi.useFakeTimers({ now: Date.parse(pinned.entries[0]!.updatedAt) + 1000 });
+		const unpinned = pinEntry(pinned, e.id, false);
+		vi.useRealTimers();
+		expect(unpinned.entries[0]).not.toHaveProperty("pinned");
+		expect(mergeContent(pinned, unpinned).entries[0]).not.toHaveProperty("pinned");
+	});
+
+	it("an app from before pinning that saved without the flag (same time) doesn't unpin", () => {
+		const e = entry("网盘", { pinned: true });
+		const stripped = { ...e };
+		delete stripped.pinned;
+		const a = { ...emptyContent(), entries: [e] };
+		const b = { ...emptyContent(), entries: [stripped] };
+		expect(mergeContent(a, b).entries[0]!.pinned).toBe(true);
+		expect(mergeContent(b, a).entries[0]!.pinned).toBe(true);
 	});
 });

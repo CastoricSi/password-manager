@@ -51,7 +51,9 @@ sharing.
   with counts — add / rename / delete in place — sync status, settings, lock)
   | list (title, list/table toggle, New, search) | entry. The entry page
   (`main/EntryEditor`) is always editable — copy / show / open-site next to
-  each box, a sticky footer with Save (Ctrl+S), Undo changes, Delete. <1024px the
+  each box, a sticky footer with Save (Ctrl+S), Undo changes, Delete; a pin
+  button in its header (applies at once, apart from Save) puts the entry first
+  in the list and table. <1024px the
   sidebar is a ☰ drawer; <768px list and details are separate pages. On
   ≥1024px an opt-in table (`prefs.layout`, `main/EntryTable`: per-cell copy,
   per-row show/hide, a category filter adds its custom-field columns) with the
@@ -137,7 +139,10 @@ src/react-app/
   lib/             Pure logic, unit-tested.
     crypto.ts        Book key, slots (password / recovery answer + optional
                      answer hint), PBKDF2-SHA256 600k.
-    content.ts       Entries, categories, features; search; mergeContent.
+    content.ts       Entries, categories, features; search (pinned first);
+                     mergeContent. `pinned?: true` is optional so older books
+                     read unchanged; pinning bumps updatedAt, and on a tie
+                     the pinned copy wins (an app from before it drops it).
     bookfile.ts      BookFile v2 (readable header incl. optional password
                      hint; sealed or plain content + attachments); protection
                      changes; mergeBooks; parseBookFile (also upgrades v1).

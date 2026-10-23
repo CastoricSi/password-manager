@@ -1048,3 +1048,13 @@ span.pm-file-thumb {
 }
 
 
+
+/* a pinned entry: a small pin before its name (list, table) */
+.pm-pin {
+	width: 13px;
+	height: 13px;
+	margin-right: 5px;
+	vertical-align: -1px;
+	color: var(--si-jade);
+	fill: currentColor;
+}
