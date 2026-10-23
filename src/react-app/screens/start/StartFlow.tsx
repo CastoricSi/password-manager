@@ -269,12 +269,13 @@ function BooksStep({ waiting, onOpen, onNew, onSwitchMode }: { waiting: boolean;
 					</div>
 				)}
 
-				<div className="pm-row pm-wizard-actions">
-					<Button icon={<Plus />} onClick={onNew} className="pm-grow">
+				{/* one above the other: side by side they squeezed "New password book" */}
+				<div className="pm-wizard-actions pm-actions-stack">
+					<Button icon={<Plus />} onClick={onNew} className="pm-block">
 						{t("book.new")}
 					</Button>
 					{google && syncState.canPick && (
-						<Button variant="ghost" icon={<UserPlus />} onClick={() => void sync.addShared()}>
+						<Button variant="ghost" icon={<UserPlus />} onClick={() => void sync.addShared()} className="pm-block">
 							{t("share.addShared")}
 						</Button>
 					)}

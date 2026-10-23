@@ -265,6 +265,11 @@ button {
 .pm-wizard-actions {
 	margin-top: auto;
 }
+/* full-width actions, one above the other (the book picker) */
+.pm-actions-stack {
+	display: grid;
+	gap: 8px;
+}
 /* Phones: no card — the steps fill the page. */
 @media (max-width: 600px) {
 	.pm-auth-main {
