@@ -120,14 +120,14 @@ export function MainScreen({ book, route, autoLocked }: { book: BookFile; route:
 
 	const loadAttachment = useCallback((id: string) => library.attachment(book.id, id), [library, book.id]);
 	// Close the dialog first and change the URL once its fade is over: a
-	// history step under the blurred backdrop makes some GPUs flash a dark band.
+	// history step under the backdrop makes some GPUs flash a dark band.
+	// `closing` lasts until the URL has really moved on (history.back() lands a
+	// moment later), or the dialog would open again for that moment.
 	const [closing, setClosing] = useState(false);
+	if (closing && !settings && !newBook) setClosing(false);
 	const closeOverlay = () => {
 		setClosing(true);
-		setTimeout(() => {
-			goBack(at({ entry: route.entry }));
-			setClosing(false);
-		}, 200);
+		setTimeout(() => goBack(at({ entry: route.entry })), 200);
 	};
 
 	const selectedId = view === "entry" ? route.entry! : null;
