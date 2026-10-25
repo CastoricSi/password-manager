@@ -26,6 +26,7 @@ import {
 import type { BookContent, Entry } from "@/lib/content";
 import { ensureCategory, pinEntry, purgeTrash, removeEntry, restoreEntry, upsertEntry } from "@/lib/content";
 import { WrongSecretError } from "@/lib/crypto";
+import { disablePasskey, forgetPasskeys } from "@/lib/passkey";
 import * as storage from "@/lib/storage";
 import type { SyncRecord } from "@/lib/storage";
 import type { SyncHost } from "@/lib/sync";
@@ -159,6 +160,11 @@ export class Library {
 		return this.tryOpen(id, (f) => openWithAnswer(f, answer));
 	}
 
+	/** With a book key from elsewhere (this device's passkey). False when it doesn't open the book. */
+	async unlockWithKey(id: string, key: CryptoKey): Promise<boolean> {
+		return this.tryOpen(id, async (f) => ({ key, content: await readContent(f, key) }));
+	}
+
 	private async tryOpen(id: string, open: (f: BookFile) => Promise<Opened>) {
 		const file = this.files.get(id);
 		if (!file) return false;
@@ -211,12 +217,14 @@ export class Library {
 	}
 
 	async removePassword(id: string) {
+		disablePasskey(id); // nothing left to unlock
 		const { file, opened } = this.requireOpen(id);
 		await this.save(await removePassword(file, opened), { key: null, content: opened.content });
 	}
 
 	/** Deleted books are kept as a marker until the cloud has been told. */
 	async deleteBook(id: string) {
+		disablePasskey(id);
 		const file = this.files.get(id)!;
 		const rec = this.records.get(id);
 		if (this.syncEnabled && rec?.ownedByMe !== false) {
@@ -246,6 +254,7 @@ export class Library {
 
 	/** Leaves a book someone shared: removed here and never downloaded again. */
 	async leave(id: string) {
+		disablePasskey(id);
 		const rec: SyncRecord = { ...(this.records.get(id) ?? { dirty: false }), excluded: true, dirty: false };
 		this.files.delete(id);
 		this.open.delete(id);
@@ -257,6 +266,7 @@ export class Library {
 	}
 
 	async eraseEverything() {
+		forgetPasskeys();
 		await storage.clearAll();
 		this.files.clear();
 		this.open.clear();

@@ -41,8 +41,11 @@ sharing.
   "use a Google account" (remembered) → book picker (last used first; share
   notices; a delete / leave button per row — deleting asks twice; with no books
   an empty state, never a forced wizard: new book, or with Google add a shared
-  one, without it a way to Google) → unlock (hint, recovery question with
-  answer hint → forced new password) → main. Deleting or leaving the open book
+  one, without it a way to Google) → unlock (Face ID / fingerprint first where
+  this device has it on; hint, recovery question with answer hint → forced new
+  password) → main. After the main password opens (or makes) a book on a device
+  that can, "use Face ID / fingerprint?" is asked once (`PasskeyOffer`; skip is
+  remembered per book); Settings → this book has the switch. Deleting or leaving the open book
   returns to the picker (no other book opens or becomes "last used").
 - **New book** (`NewBookWizard`): 1 name + protection (or import backup),
   2 password + confirm + optional hint, 3 optional recovery question + answer +
@@ -142,6 +145,10 @@ src/react-app/
   lib/             Pure logic, unit-tested.
     crypto.ts        Book key, slots (password / recovery answer + optional
                      answer hint), PBKDF2-SHA256 600k.
+    passkey.ts       One WebAuthn passkey per device; its PRF result (per-book
+                     salt, HKDF) wraps the book key, stored on this device only
+                     (localStorage pm-passkey*), never synced. The main password
+                     always still works; a record that stops working is dropped.
     content.ts       Entries, categories, features, recycle bin (`trash`:
                      deleted entries kept 30 days, the tombstones stay so
                      older apps keep them deleted; restore bumps updatedAt;
@@ -177,6 +184,8 @@ src/react-app/
 
 Notes:
 - "Lock" / auto-lock lock only password books; open books stay usable.
+- Face ID / fingerprint is per device and per book; removing the password,
+  deleting or leaving a book, or erasing everything forgets it here.
 - Hints are stored readable (they must show while locked); the UI says so and
   refuses a password hint equal to the password.
 - With Google, every book syncs (no per-book toggle). Signing out keeps books

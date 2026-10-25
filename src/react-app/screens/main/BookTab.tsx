@@ -1,5 +1,5 @@
 import { Check, Download, LogOut, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, ConfirmDialog, Group, GroupRow, Note, PasswordField, Switch, TextField } from "sityle";
 
 import { useLibrary, useSync } from "@/app/context";
@@ -8,6 +8,7 @@ import { usePrefs } from "@/app/prefs";
 import { hasPassword, passwordHint, slotsOf, type BookFile, type Opened } from "@/lib/bookfile";
 import { setFeatures } from "@/lib/content";
 import { recoveryHint, recoveryQuestion, unlockWithPassword } from "@/lib/crypto";
+import { disablePasskey, enablePasskey, hasPasskey, passkeySupported, PasskeyUnsupportedError } from "@/lib/passkey";
 import { NewPasswordFields } from "../NewPasswordFields";
 import { RecoveryFields } from "../RecoveryFields";
 import { newPasswordError, recoveryInput } from "../validation";
@@ -52,6 +53,7 @@ export function BookTab({ book, opened, onGone, onGoToAccount }: { book: BookFil
 				{locked && (
 					<>
 						<HintRow book={book} />
+						<PasskeyRow book={book} opened={opened} />
 						<RecoveryRow book={book} onRemove={() => setConfirm("removeRecovery")} />
 						<GroupRow title={t("book.removePassword")} description={t("book.removePasswordHint")}>
 							<Button variant="light" tone="danger" onClick={() => setConfirm("removePassword")}>
@@ -382,5 +384,50 @@ function RecoveryRow({ book, onRemove }: { book: BookFile; onRemove: () => void 
 				</Button>
 			</div>
 		</GroupRow>
+	);
+}
+
+/** Face ID / fingerprint on this device: shown only where the device can do it. */
+function PasskeyRow({ book, opened }: { book: BookFile; opened: Opened }) {
+	const { t } = usePrefs();
+	const [supported, setSupported] = useState(false);
+	const [on, setOn] = useState(() => hasPasskey(book.id));
+	const [busy, setBusy] = useState(false);
+	const [failed, setFailed] = useState<string | null>(null);
+	useEffect(() => {
+		let live = true;
+		void passkeySupported().then((ok) => live && setSupported(ok));
+		return () => {
+			live = false;
+		};
+	}, []);
+	if (!supported) return null;
+
+	const toggle = async (next: boolean) => {
+		setFailed(null);
+		if (!next) {
+			disablePasskey(book.id);
+			setOn(false);
+			return;
+		}
+		if (!opened.key || busy) return;
+		setBusy(true);
+		try {
+			await enablePasskey(book.id, opened.key, t("passkey.name"));
+			setOn(true);
+		} catch (e) {
+			if (!(e instanceof DOMException && e.name === "NotAllowedError")) setFailed(e instanceof PasskeyUnsupportedError ? t("passkey.unsupported") : t("passkey.failed"));
+		} finally {
+			setBusy(false);
+		}
+	};
+
+	return (
+		<div className="si-group-row">
+			<div className="pm-stack is-tight">
+				<Switch label={t("passkey.setting")} description={t("passkey.settingHint")} checked={on} disabled={busy} onChange={(v) => void toggle(v)} />
+				{failed && <p className="pm-error">{failed}</p>}
+			</div>
+		</div>
 	);
 }

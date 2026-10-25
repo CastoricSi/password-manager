@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button, Note, RadioCard, Steps, TextField } from "sityle";
 
 import { useLibrary } from "@/app/context";
+import { offerPasskey } from "@/app/passkeyOffer";
 import type { MessageKey } from "@/app/i18n";
 import { useT } from "@/app/prefs";
 import { NewPasswordFields } from "./NewPasswordFields";
@@ -61,6 +62,8 @@ export function NewBookWizard({ defaultName, onDone, onCancel, inDialog }: { def
 							recovery: typeof recovery === "object" ? { ...recovery, hint: answerHint } : undefined,
 						},
 			);
+			// the main password was just typed here: Face ID / fingerprint from now on?
+			if (mode !== "open") void offerPasskey(id);
 			onDone(id);
 		} finally {
 			setBusy(false);

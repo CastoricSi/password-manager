@@ -1097,9 +1097,8 @@ span.pm-file-thumb {
 	font-size: 0.8125rem;
 }
 
-/* the recycle bin, apart below the categories */
-.pm-nav-bin {
-	margin-top: 12px;
-	padding-top: 8px;
-	border-top: 1px solid var(--si-line);
+/* unlock: "or enter the main password" between Face ID and the password */
+.pm-or {
+	text-align: center;
+	font-size: 0.8125rem;
 }

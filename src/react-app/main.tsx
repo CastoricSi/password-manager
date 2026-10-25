@@ -8,6 +8,7 @@ import App from "./App";
 import { AppProvider } from "@/app/AppProvider";
 import { PrefsProvider } from "@/app/PrefsProvider";
 import { Theme } from "@/app/Theme";
+import { PasskeyOffer } from "@/screens/PasskeyOffer";
 
 createRoot(document.getElementById("root")!).render(
 	<StrictMode>
@@ -15,6 +16,7 @@ createRoot(document.getElementById("root")!).render(
 			<Theme>
 				<AppProvider>
 					<App />
+					<PasskeyOffer />
 				</AppProvider>
 			</Theme>
 		</PrefsProvider>
