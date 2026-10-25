@@ -5,7 +5,7 @@ import { useLibrary } from "@/app/context";
 import { usePrefs } from "@/app/prefs";
 import { goBack, navigate, setNavBlocker, type Route } from "@/app/nav";
 import { hasPassword, type BookFile } from "@/lib/bookfile";
-import { deleteCategory, ensureCategory, fieldLabels, findEntries, liveCategories, newEntry, renameCategory, type Entry } from "@/lib/content";
+import { deleteCategory, ensureCategory, fieldLabels, findEntries, liveCategories, newEntry, renameCategory, trashed, type Entry } from "@/lib/content";
 import { AnimatePresence, motion } from "motion/react";
 import { Button, ConfirmDialog, Dialog, Fab, IconButton } from "sityle";
 import { cn } from "@/ui/cn";
@@ -21,6 +21,7 @@ import { LockedPanel } from "./LockedPanel";
 import { NewPasswordDialog } from "./NewPasswordDialog";
 import { Pane } from "./Pane";
 import { SettingsDialog } from "./SettingsPane";
+import { TrashView } from "./TrashView";
 import { Sidebar } from "./Sidebar";
 
 
@@ -227,6 +228,12 @@ export function MainScreen({ book, route, autoLocked }: { book: BookFile; route:
 				setDrawer(false);
 				go({ entry: route.entry, settings: "account" });
 			}}
+			trashCount={content ? trashed(content).length : 0}
+			inTrash={!!route.trash}
+			onTrash={() => {
+				guard(() => go({ cat: undefined, trash: true }));
+				setDrawer(false);
+			}}
 			onLock={
 				library.hasPasswordBooks
 					? () =>
@@ -278,6 +285,19 @@ export function MainScreen({ book, route, autoLocked }: { book: BookFile; route:
 				</div>
 				<LockedPanel key={book.id} book={book} autoLocked={autoLocked} onRecovered={setMustReset} />
 			</section>
+		);
+	} else if (route.trash) {
+		body = (
+			<>
+				<section className="pm-listcol is-trash">
+					<TrashView
+						content={content}
+						menuButton={menuButton}
+						onRestore={(id) => void library.restoreEntry(book.id, id)}
+						onPurge={(ids) => void library.purgeTrash(book.id, ids)}
+					/>
+				</section>
+			</>
 		);
 	} else if (tableMode) {
 		body = (
@@ -342,7 +362,7 @@ export function MainScreen({ book, route, autoLocked }: { book: BookFile; route:
 			)}
 			{body}
 
-			{phone && content && !showPane && <Fab icon={<Plus />} label={t("main.new")} onClick={startNew} />}
+			{phone && content && !showPane && !route.trash && <Fab icon={<Plus />} label={t("main.new")} onClick={startNew} />}
 
 			<SettingsDialog
 				open={!!settings && !closing}

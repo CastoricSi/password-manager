@@ -48,8 +48,11 @@ sharing.
   2 password + confirm + optional hint, 3 optional recovery question + answer +
   optional answer hint. Open books finish after step 1.
 - **Main** (`main/MainScreen`): `Sidebar` (book switcher, All + categories
-  with counts — add / rename / delete in place — sync status, settings, lock)
-  | list (title, list/table toggle, New, search) | entry. The entry page
+  with counts — add / rename / delete in place — the recycle bin, sync status,
+  settings, lock) | list (title, list/table toggle, New, search — a query
+  searches the whole book, whatever category is open) | entry. No password
+  generator (on purpose). Deleting an entry moves it to the book's recycle bin
+  (`main/TrashView`, `/b/<book>/trash`): restore, delete for good, empty; 30 days. The entry page
   (`main/EntryEditor`) is always editable — copy / show / open-site next to
   each box, a sticky footer with Save (Ctrl+S), Undo changes, Delete; a pin
   button in its header (applies at once, apart from Save) puts the entry first
@@ -105,7 +108,7 @@ sharing.
 
 Where the user is lives in the URL so Back / Forward / refresh work:
 `/` picker, `/mode`, `/new` (wizard), `/b/<book>`, `/b/<book>/e/<entry>`,
-`/b/<book>/new`; query `c` (category), `settings` (tab), `dialog=newbook`.
+`/b/<book>/new`, `/b/<book>/trash`; query `c` (category), `settings` (tab), `dialog=newbook`.
 Only opaque ids — never names or search text. Going deeper pushes;
 sideways (category, settings tab, another entry while one is open) replaces;
 closing uses `goBack(target)` (a real Back only if the previous page is the
@@ -139,7 +142,10 @@ src/react-app/
   lib/             Pure logic, unit-tested.
     crypto.ts        Book key, slots (password / recovery answer + optional
                      answer hint), PBKDF2-SHA256 600k.
-    content.ts       Entries, categories, features; search (pinned first);
+    content.ts       Entries, categories, features, recycle bin (`trash`:
+                     deleted entries kept 30 days, the tombstones stay so
+                     older apps keep them deleted; restore bumps updatedAt;
+                     deleted for good leaves a marker); search (pinned first);
                      mergeContent. `pinned?: true` is optional so older books
                      read unchanged; pinning bumps updatedAt, and on a tie
                      the pinned copy wins (an app from before it drops it).

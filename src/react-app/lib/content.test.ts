@@ -9,12 +9,16 @@ import {
 	newEntry,
 	parseContent,
 	pinEntry,
+	purgeTrash,
+	referencedFiles,
 	removeEntry,
+	restoreEntry,
+	trashed,
 	toHref,
 	upsertEntry,
 	type Entry,
 } from "./content";
-import { generatePassword, passwordStrength } from "./password";
+import { passwordStrength } from "./password";
 
 const entry = (name: string, extra: Partial<Entry> = {}): Entry => ({ ...newEntry(), name, ...extra });
 const at = (iso: string) => `2026-01-0${iso}T00:00:00.000Z`;
@@ -111,14 +115,7 @@ describe("parseContent", () => {
 });
 
 describe("passwords", () => {
-	it("generates readable passwords with every character class", () => {
-		for (let i = 0; i < 30; i += 1) {
-			const pw = generatePassword();
-			expect(pw).toMatch(/[a-z]/);
-			expect(pw).toMatch(/[A-Z]/);
-			expect(pw).toMatch(/\d/);
-			expect(pw).not.toMatch(/[0O1lI]/);
-		}
+	it("rates a main password simply", () => {
 		expect(passwordStrength("1234567")).toBe("weak");
 		expect(passwordStrength("Garden-2024-x")).toBe("strong");
 	});
@@ -165,5 +162,67 @@ describe("pinning", () => {
 		const b = { ...emptyContent(), entries: [stripped] };
 		expect(mergeContent(a, b).entries[0]!.pinned).toBe(true);
 		expect(mergeContent(b, a).entries[0]!.pinned).toBe(true);
+	});
+});
+
+describe("recycle bin", () => {
+	const book = (...entries: Entry[]) => ({ ...emptyContent(), entries });
+
+	it("a deleted entry goes to the bin, still marked deleted for older apps", () => {
+		const e = entry("银行");
+		const c = removeEntry(book(e), e.id);
+		expect(c.entries).toEqual([]);
+		expect(c.deletedEntries[e.id]).toBeTruthy();
+		expect(trashed(c).map((x) => x.entry.name)).toEqual(["银行"]);
+	});
+
+	it("restoring brings it back, and wins over the other device's bin when merged", () => {
+		const e = entry("邮箱", { updatedAt: "2020-01-01T00:00:00.000Z" });
+		const deleted = removeEntry(book(e), e.id);
+		vi.useFakeTimers({ now: Date.now() + 1000 });
+		const restored = restoreEntry(deleted, e.id);
+		vi.useRealTimers();
+		expect(restored.entries.map((x) => x.name)).toEqual(["邮箱"]);
+		expect(trashed(restored)).toEqual([]);
+		for (const merged of [mergeContent(deleted, restored), mergeContent(restored, deleted)]) {
+			expect(merged.entries.map((x) => x.id)).toEqual([e.id]);
+			expect(trashed(merged)).toEqual([]);
+		}
+	});
+
+	it("deleted for good on one device stays deleted on the others", () => {
+		const e = entry("网盘");
+		const deleted = removeEntry(book(e), e.id);
+		const purged = purgeTrash(deleted, [e.id]);
+		expect(trashed(purged)).toEqual([]);
+		expect(trashed(mergeContent(deleted, purged))).toEqual([]);
+		expect(trashed(mergeContent(purged, deleted))).toEqual([]);
+		expect(mergeContent(purged, deleted).entries).toEqual([]);
+	});
+
+	it("leaves the bin by itself after 30 days", () => {
+		const e = entry("旧的");
+		const old = { ...emptyContent(), trash: [{ id: e.id, deletedAt: new Date(Date.now() - 31 * 864e5).toISOString(), entry: e }] };
+		expect(trashed(parseContent(JSON.parse(JSON.stringify(old))))).toEqual([]);
+		expect(trashed(mergeContent(old, emptyContent()))).toEqual([]);
+	});
+
+	it("keeps the attachments of entries in the bin (until deleted for good)", () => {
+		const e = entry("证件", { attachments: [{ id: "f1", name: "id.png", type: "image/png", size: 10 }] });
+		const deleted = removeEntry(book(e), e.id);
+		expect(referencedFiles(deleted).has("f1")).toBe(true);
+		expect(referencedFiles(purgeTrash(deleted)).has("f1")).toBe(false);
+	});
+
+	it("an older book (no bin) reads with an empty one", () => {
+		expect(parseContent({ entries: [], deletedEntries: {} }).trash).toEqual([]);
+	});
+});
+
+describe("search", () => {
+	it("a query looks through the whole book, whatever category is open", () => {
+		const c = { ...emptyContent(), entries: [entry("工作邮箱", { categoryId: "work" }), entry("家里邮箱", { categoryId: "home" }), entry("银行", { categoryId: "work" })] };
+		expect(findEntries(c, "", "work", "zh").map((e) => e.name)).toEqual(["工作邮箱", "银行"]);
+		expect(findEntries(c, "邮箱", "work", "zh").map((e) => e.name).sort()).toEqual(["家里邮箱", "工作邮箱"].sort());
 	});
 });

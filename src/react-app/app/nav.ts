@@ -8,6 +8,7 @@
 //   /b/<book>              a book                     ?c=<category>
 //   /b/<book>/e/<entry>    an entry                   ?settings=<tab>
 //   /b/<book>/new          a new entry                ?dialog=newbook
+//   /b/<book>/trash        the book's recycle bin
 //
 // Going deeper pushes a history entry; sideways moves (category, settings
 // tab, another entry while one is open) replace it; closing an overlay goes
@@ -23,6 +24,8 @@ export type Route = {
 	/** An entry id, or "new" for a new entry. */
 	entry?: string;
 	cat?: string;
+	/** The book's recycle bin. */
+	trash?: true;
 	settings?: SettingsTab;
 	dialog?: "newbook";
 	start?: "new" | "mode";
@@ -36,6 +39,7 @@ export function parseRoute(pathname: string, search: string): Route {
 		r.book = parts[1];
 		if (parts[2] === "e" && parts[3]) r.entry = parts[3];
 		else if (parts[2] === "new") r.entry = "new";
+		else if (parts[2] === "trash") r.trash = true;
 		const c = q.get("c");
 		if (c) r.cat = c;
 		if (q.get("dialog") === "newbook") r.dialog = "newbook";
@@ -53,6 +57,7 @@ export function routeHref(r: Route): string {
 		path = `/b/${encodeURIComponent(r.book)}`;
 		if (r.entry === "new") path += "/new";
 		else if (r.entry) path += `/e/${encodeURIComponent(r.entry)}`;
+		else if (r.trash) path += "/trash";
 	} else if (r.start) {
 		path = `/${r.start}`;
 	}

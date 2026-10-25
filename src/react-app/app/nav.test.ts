@@ -20,6 +20,7 @@ describe("routes", () => {
 			{ book: "b1", entry: "new", cat: "c1" },
 			{ book: "b1", entry: "e1", settings: "account" },
 			{ book: "b1", dialog: "newbook" },
+			{ book: "b1", trash: true },
 		];
 		for (const r of places) expect(roundTrip(r)).toEqual(r);
 	});
@@ -28,6 +29,7 @@ describe("routes", () => {
 		expect(routeHref({})).toBe("/");
 		expect(routeHref({ book: "b1", entry: "e1", cat: "c1" })).toBe("/b/b1/e/e1?c=c1");
 		expect(routeHref({ book: "b1", entry: "new" })).toBe("/b/b1/new");
+		expect(routeHref({ book: "b1", trash: true })).toBe("/b/b1/trash");
 		expect(routeHref({ book: "b1", settings: "general" })).toBe("/b/b1?settings=general");
 	});
 

@@ -1058,3 +1058,48 @@ span.pm-file-thumb {
 	color: var(--si-jade);
 	fill: currentColor;
 }
+
+/* the recycle bin: one column across the space of the list and the details */
+.pm-listcol.is-trash {
+	flex: 1;
+	width: auto;
+	min-width: 0;
+}
+.pm-trash-hint {
+	padding: 4px 4px 12px;
+}
+.pm-trash {
+	display: grid;
+	gap: 2px;
+	max-width: 760px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+.pm-trash-row {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 8px 10px;
+	border-radius: var(--si-r-md);
+}
+.pm-trash-row:hover {
+	background: var(--si-paper-sunk);
+}
+.pm-trash-text {
+	display: grid;
+	min-width: 0;
+}
+.pm-trash-text b {
+	font-weight: 500;
+}
+.pm-trash-text span {
+	font-size: 0.8125rem;
+}
+
+/* the recycle bin, apart below the categories */
+.pm-nav-bin {
+	margin-top: 12px;
+	padding-top: 8px;
+	border-top: 1px solid var(--si-line);
+}

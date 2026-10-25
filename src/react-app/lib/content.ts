@@ -28,10 +28,23 @@ export type Category = { id: string; name: string; updatedAt: string; deleted?: 
  */
 export type Features = { categories: boolean; customFields: boolean };
 
+/**
+ * A deleted entry in the recycle bin, restorable for TRASH_DAYS. Without `entry`
+ * it was deleted for good (kept as a marker so other devices let theirs go too).
+ */
+export type TrashItem = { id: string; deletedAt: string; entry?: Entry };
+
+export const TRASH_DAYS = 30;
+
 export type BookContent = {
 	entries: Entry[];
 	/** Tombstones so a sync can tell "deleted" from "never seen": id → deletedAt. */
 	deletedEntries: Record<string, string>;
+	/**
+	 * The recycle bin. The tombstones above still mark these entries deleted, so an
+	 * app from before the bin (which drops this list) never brings them back.
+	 */
+	trash: TrashItem[];
 	categories: Category[];
 	features: Features;
 	featuresUpdatedAt: string;
@@ -44,6 +57,7 @@ export function emptyContent(): BookContent {
 	return {
 		entries: [],
 		deletedEntries: {},
+		trash: [],
 		categories: [],
 		features: { categories: true, customFields: false },
 		featuresUpdatedAt: EPOCH,
@@ -98,12 +112,52 @@ export function pinEntry(c: BookContent, id: string, pinned: boolean): BookConte
 	};
 }
 
+/** Deletes an entry into the recycle bin. */
 export function removeEntry(c: BookContent, id: string): BookContent {
+	const t = now();
+	const entry = c.entries.find((e) => e.id === id);
 	return {
 		...c,
 		entries: c.entries.filter((e) => e.id !== id),
-		deletedEntries: { ...c.deletedEntries, [id]: now() },
+		deletedEntries: { ...c.deletedEntries, [id]: t },
+		trash: [...c.trash.filter((x) => x.id !== id), ...(entry ? [{ id, deletedAt: t, entry }] : [])],
 	};
+}
+
+/** Entries in the recycle bin (not yet deleted for good), most recently deleted first. */
+export function trashed(c: BookContent): Array<{ entry: Entry; deletedAt: string }> {
+	return c.trash
+		.filter((x): x is TrashItem & { entry: Entry } => !!x.entry)
+		.map(({ entry, deletedAt }) => ({ entry, deletedAt }))
+		.sort((a, b) => b.deletedAt.localeCompare(a.deletedAt));
+}
+
+/** Days left before a deleted entry leaves the bin by itself. */
+export const trashDaysLeft = (deletedAt: string, at = Date.now()) => Math.max(0, Math.ceil((Date.parse(deletedAt) + TRASH_DAYS * 864e5 - at) / 864e5));
+
+/** Brings an entry back from the bin. A fresh updatedAt makes it win over the tombstone on every device. */
+export function restoreEntry(c: BookContent, id: string): BookContent {
+	const item = c.trash.find((x) => x.id === id);
+	if (!item?.entry) return c;
+	const deletedEntries = { ...c.deletedEntries };
+	delete deletedEntries[id];
+	return {
+		...c,
+		entries: [...c.entries.filter((e) => e.id !== id), { ...item.entry, updatedAt: now() }],
+		deletedEntries,
+		trash: c.trash.filter((x) => x.id !== id),
+	};
+}
+
+/** Deletes entries in the bin for good (all of them without `ids`). */
+export function purgeTrash(c: BookContent, ids?: string[]): BookContent {
+	return { ...c, trash: c.trash.map((x) => (!ids || ids.includes(x.id) ? { id: x.id, deletedAt: x.deletedAt } : x)) };
+}
+
+/** The bin without what has been there TRASH_DAYS, and without what was restored since. */
+function tidyTrash(trash: TrashItem[], entries: Entry[], at = Date.now()): TrashItem[] {
+	const live = new Map(entries.map((e) => [e.id, e.updatedAt]));
+	return trash.filter((x) => Date.parse(x.deletedAt) + TRASH_DAYS * 864e5 > at && !((live.get(x.id) ?? "") > x.deletedAt));
 }
 
 export function setFeatures(c: BookContent, features: Features): BookContent {
@@ -143,17 +197,23 @@ export function fieldLabels(c: BookContent): string[] {
 }
 
 /** Attachment ids still referenced by some entry. */
+/** Attachment files still needed: by entries, and by entries in the recycle bin (restorable). */
 export function referencedFiles(c: BookContent): Set<string> {
-	return new Set(c.entries.flatMap((e) => e.attachments.map((a) => a.id)));
+	const inBin = c.trash.flatMap((x) => x.entry?.attachments ?? []);
+	return new Set([...c.entries.flatMap((e) => e.attachments), ...inBin].map((a) => a.id));
 }
 
 // ── Searching ────────────────────────────────────────────────────────────────
 
+/**
+ * The list: the category's entries, or with a query, matches from the whole book —
+ * a search always looks everywhere (a book is one book; categories only sort it).
+ */
 export function findEntries(c: BookContent, query: string, categoryId: string | null, locale: string): Entry[] {
 	const q = query.trim().toLocaleLowerCase();
 	const collator = new Intl.Collator(locale === "zh" ? "zh-Hans-CN" : "en", { sensitivity: "base", numeric: true });
 	return c.entries
-		.filter((e) => !categoryId || e.categoryId === categoryId)
+		.filter((e) => q || !categoryId || e.categoryId === categoryId)
 		.filter((e) => {
 			if (!q) return true;
 			const text = [e.name, e.username, e.url, e.notes, ...e.fields.filter((f) => !f.secret).flatMap((f) => [f.label, f.value])];
@@ -202,6 +262,19 @@ export function mergeContent(a: BookContent, b: BookContent): BookContent {
 	const keptEntries = [...entries.values()].filter((e) => !(deletedEntries[e.id] && deletedEntries[e.id] >= e.updatedAt));
 	for (const e of keptEntries) delete deletedEntries[e.id]; // resurrected by a later edit
 
+	// The bin: the later deletion of each entry; deleted for good on either side stays so.
+	const bin = new Map<string, TrashItem>();
+	for (const x of [...a.trash, ...b.trash]) {
+		const prev = bin.get(x.id);
+		if (!prev) {
+			bin.set(x.id, x);
+			continue;
+		}
+		const newer = x.deletedAt > prev.deletedAt ? x : prev;
+		bin.set(x.id, prev.entry && x.entry ? newer : { id: x.id, deletedAt: newer.deletedAt });
+	}
+	const trash = tidyTrash([...bin.values()], keptEntries).sort((x, y) => x.id.localeCompare(y.id));
+
 	const categories = new Map<string, Category>();
 	for (const cat of [...a.categories, ...b.categories]) {
 		const prev = categories.get(cat.id);
@@ -216,6 +289,7 @@ export function mergeContent(a: BookContent, b: BookContent): BookContent {
 	return {
 		entries: keptEntries.sort((x, y) => x.id.localeCompare(y.id)),
 		deletedEntries,
+		trash,
 		categories: [...categories.values()].sort((x, y) => x.id.localeCompare(y.id)),
 		features,
 		featuresUpdatedAt,
@@ -228,35 +302,45 @@ const str = (v: unknown, fallback = "") => (typeof v === "string" ? v : fallback
 const obj = (v: unknown): Record<string, unknown> => (v && typeof v === "object" ? (v as Record<string, unknown>) : {});
 const arr = (v: unknown): unknown[] => (Array.isArray(v) ? v : []);
 
+function parseEntry(value: unknown, t: string): Entry {
+	const e = obj(value);
+	return {
+		id: str(e.id) || crypto.randomUUID(),
+		name: str(e.name),
+		username: str(e.username),
+		password: str(e.password),
+		url: str(e.url),
+		notes: str(e.notes),
+		categoryId: typeof e.categoryId === "string" ? e.categoryId : null,
+		fields: arr(e.fields)
+			.map(obj)
+			.map((f) => ({ id: str(f.id) || crypto.randomUUID(), label: str(f.label), value: str(f.value), secret: f.secret === true })),
+		attachments: arr(e.attachments)
+			.map(obj)
+			.filter((a) => typeof a.id === "string")
+			.map((a) => ({ id: str(a.id), name: str(a.name, "file"), type: str(a.type, "application/octet-stream"), size: Number(a.size) || 0 })),
+		...(e.pinned === true ? { pinned: true as const } : {}),
+		createdAt: str(e.createdAt, t),
+		updatedAt: str(e.updatedAt, t),
+	};
+}
+
 export function parseContent(value: unknown): BookContent {
 	const o = obj(value);
 	const t = now();
 	const base = emptyContent();
 	const features = obj(o.features);
 	const deleted = obj(o.deletedEntries);
+	const entries = arr(o.entries).map((e) => parseEntry(e, t));
+	// an older book has no bin: an empty one
+	const trash = arr(o.trash)
+		.map(obj)
+		.filter((x) => typeof x.id === "string" && typeof x.deletedAt === "string")
+		.map((x): TrashItem => ({ id: str(x.id), deletedAt: str(x.deletedAt), ...(x.entry ? { entry: parseEntry(x.entry, t) } : {}) }));
 	return {
-		entries: arr(o.entries)
-			.map(obj)
-			.map((e) => ({
-				id: str(e.id) || crypto.randomUUID(),
-				name: str(e.name),
-				username: str(e.username),
-				password: str(e.password),
-				url: str(e.url),
-				notes: str(e.notes),
-				categoryId: typeof e.categoryId === "string" ? e.categoryId : null,
-				fields: arr(e.fields)
-					.map(obj)
-					.map((f) => ({ id: str(f.id) || crypto.randomUUID(), label: str(f.label), value: str(f.value), secret: f.secret === true })),
-				attachments: arr(e.attachments)
-					.map(obj)
-					.filter((a) => typeof a.id === "string")
-					.map((a) => ({ id: str(a.id), name: str(a.name, "file"), type: str(a.type, "application/octet-stream"), size: Number(a.size) || 0 })),
-				...(e.pinned === true ? { pinned: true as const } : {}),
-				createdAt: str(e.createdAt, t),
-				updatedAt: str(e.updatedAt, t),
-			})),
+		entries,
 		deletedEntries: Object.fromEntries(Object.entries(deleted).filter(([, v]) => typeof v === "string")) as Record<string, string>,
+		trash: tidyTrash(trash, entries),
 		categories: arr(o.categories)
 			.map(obj)
 			.filter((c) => typeof c.id === "string")

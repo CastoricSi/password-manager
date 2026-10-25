@@ -1,11 +1,10 @@
-import { ArrowLeft, Check, ExternalLink, EyeOff, Pin, Plus, Trash2, WandSparkles, X } from "lucide-react";
+import { ArrowLeft, Check, ExternalLink, EyeOff, Pin, Plus, Trash2, X } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 
 import { Button, ConfirmDialog, CopyButton, IconButton, Input, PasswordField, SelectField, TextAreaField, TextField } from "sityle";
 
 import { usePrefs } from "@/app/prefs";
 import { newField, toHref, type Category, type CustomField, type Entry } from "@/lib/content";
-import { generatePassword } from "@/lib/password";
 import { EntryAvatar } from "@/ui/Logo";
 import { useMediaQuery } from "@/ui/useMediaQuery";
 import { AddAttachmentButton, AttachmentList } from "./Attachments";
@@ -71,7 +70,6 @@ export function EntryEditor({
 	const [nameMissing, setNameMissing] = useState(false);
 	const [saving, setSaving] = useState(false);
 	const [confirmDelete, setConfirmDelete] = useState(false);
-	const [pwKey, setPwKey] = useState(0); // re-mount the password box to show a generated one
 
 	const dirty = editable(draft) !== editable(base) || Object.keys(newFiles).length > 0 || categoryChoice !== (base.categoryId ?? "");
 
@@ -205,25 +203,7 @@ export function EntryEditor({
 									end={copy(draft.username, t("field.username"))}
 								/>
 
-								<PasswordField
-									key={pwKey}
-									label={t("field.password")}
-									defaultVisible={pwKey > 0}
-									value={draft.password}
-									onChange={(e) => set("password", e.target.value)}
-									extra={
-										<IconButton
-											key="gen"
-											label={t("entry.generate")}
-											onClick={() => {
-												set("password", generatePassword());
-												setPwKey((k) => k + 1);
-											}}
-										>
-											<WandSparkles />
-										</IconButton>
-									}
-								/>
+								<PasswordField label={t("field.password")} value={draft.password} onChange={(e) => set("password", e.target.value)} />
 
 								<TextField
 									label={t("field.url")}

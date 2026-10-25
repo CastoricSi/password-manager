@@ -30,6 +30,9 @@ export function Sidebar({
 	onSettings,
 	onSync,
 	onLock,
+	trashCount,
+	inTrash,
+	onTrash,
 }: {
 	unlocked: boolean;
 	categories: Category[];
@@ -47,6 +50,10 @@ export function Sidebar({
 	onSettings: () => void;
 	onSync: () => void;
 	onLock?: () => void;
+	/** Entries in the recycle bin. */
+	trashCount: number;
+	inTrash: boolean;
+	onTrash: () => void;
 }) {
 	const t = useT();
 	const [adding, setAdding] = useState(false);
@@ -68,7 +75,7 @@ export function Sidebar({
 			<div className="pm-nav-scroll">
 				{unlocked ? (
 					<>
-						<NavItem icon={<Inbox />} label={t("category.all")} count={total} current={activeCategory === null} onClick={() => onCategory(null)} />
+						<NavItem icon={<Inbox />} label={t("category.all")} count={total} current={activeCategory === null && !inTrash} onClick={() => onCategory(null)} />
 
 						<div className="pm-nav-section">
 							<span className="pm-label">{t("nav.categories")}</span>
@@ -104,6 +111,9 @@ export function Sidebar({
 						{categories.length === 0 && !adding && (
 							<NavItem icon={<Plus />} label={t("category.add")} onClick={() => setAdding(true)} />
 						)}
+						<div className="pm-nav-bin">
+							<NavItem icon={<Trash2 />} label={t("trash.title")} count={trashCount || undefined} current={inTrash} onClick={onTrash} />
+						</div>
 					</>
 				) : (
 					<p className="pm-faint pm-row" style={{ padding: "4px 12px" }}>

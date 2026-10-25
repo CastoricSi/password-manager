@@ -24,7 +24,7 @@ import {
 	type Opened,
 } from "@/lib/bookfile";
 import type { BookContent, Entry } from "@/lib/content";
-import { ensureCategory, pinEntry, removeEntry, upsertEntry } from "@/lib/content";
+import { ensureCategory, pinEntry, purgeTrash, removeEntry, restoreEntry, upsertEntry } from "@/lib/content";
 import { WrongSecretError } from "@/lib/crypto";
 import * as storage from "@/lib/storage";
 import type { SyncRecord } from "@/lib/storage";
@@ -299,8 +299,18 @@ export class Library {
 		await this.updateContent(id, (c) => pinEntry(c, entryId, pinned));
 	}
 
+	/** Into the recycle bin. */
 	async deleteEntry(id: string, entryId: string) {
 		await this.updateContent(id, (c) => removeEntry(c, entryId));
+	}
+
+	async restoreEntry(id: string, entryId: string) {
+		await this.updateContent(id, (c) => restoreEntry(c, entryId));
+	}
+
+	/** Deletes entries in the bin for good (all without `entryIds`). */
+	async purgeTrash(id: string, entryIds?: string[]) {
+		await this.updateContent(id, (c) => purgeTrash(c, entryIds));
 	}
 
 	async attachment(id: string, fileId: string): Promise<string | null> {
